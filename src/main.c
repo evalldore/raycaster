@@ -4,6 +4,7 @@ SDL_Window		*g_window = NULL;
 SDL_GLContext	g_context;
 GLuint			g_vertexArrayObject = 0;
 GLuint			g_vertexBufferObject = 0;
+GLuint			g_indexBufferObject = 0;
 GLuint			g_graphicsPipelineShader = 0;
 
 static void	Loop()
@@ -46,7 +47,8 @@ static void	Loop()
 		//Draw
 		glBindVertexArray(g_vertexArrayObject);
 		glBindBuffer(GL_ARRAY_BUFFER, g_vertexBufferObject);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		//glDrawArrays(GL_TRIANGLES, 0, 4);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 		glUseProgram(0);
 		//Game_Draw();
 		SDL_GL_SwapWindow(g_window);
@@ -104,20 +106,23 @@ void	VertexSpecification()
 {
 	// cpu vertices
 	const GLfloat vertexArray[12][3] = {
-		//first triangle
-		{-0.5f, -0.5f, 0.0f},	//vertex 1 bottom left position
-		{1.0f, 0.0f, 0.0f},		//vertex 1 bottom left color
-		{0.5f, -0.5f, 0.0f},	//vertex 2 bottom right position
-		{0.0f, 1.0f, 0.0f},		//vertex 2 botom right color
-		{-0.5f, 0.5f, 0.0f},	//vertex 3 top left position
-		{0.0f, 0.0f, 1.0f},		//vertex 3 top left color
-		//second triangle
-		{0.5f, -0.5f, 0.0f},	//vertex 4 bottom right position
-		{0.0f, 1.0f, 0.0f},		//vertex 4 botom right color
-		{0.5f, 0.5f, 0.0f},		//vertex 5 top right position
-		{0.0f, 0.0f, 1.0f},		//vertex 5 top right color
-		{-0.5f, 0.5f, 0.0f},	//vertex 6 top left position
-		{0.0f, 0.0f, 1.0f}		//vertex 6 top left color
+		//vertex 0
+		{-0.5f, -0.5f, 0.0f},	//position
+		{1.0f, 0.0f, 0.0f},		//color
+		//vertex 1
+		{0.5f, -0.5f, 0.0f},	//position
+		{0.0f, 1.0f, 0.0f},		//color
+		//vertex 2
+		{-0.5f, 0.5f, 0.0f},	//position
+		{0.0f, 0.0f, 1.0f},		//color
+		//vertex 3
+		{0.5f, 0.5f, 0.0f},		//position
+		{0.0f, 0.0f, 1.0f}		//color
+	};
+
+	const GLuint vertexIndexes[2][3] = {
+		{2, 0, 1},
+		{3, 2, 1}
 	};
 
 	//gpu setup
@@ -125,7 +130,6 @@ void	VertexSpecification()
 	glBindVertexArray(g_vertexArrayObject);
 
 	//start generating VBO
-	//position
 	glGenBuffers(1, &g_vertexBufferObject);
 	glBindBuffer(GL_ARRAY_BUFFER, g_vertexBufferObject);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexArray), &vertexArray, GL_STATIC_DRAW);
@@ -135,6 +139,11 @@ void	VertexSpecification()
 
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 6, (GLvoid*)(sizeof(GL_FLOAT) * 3));
+
+	//Setup index buffer object (IBO)
+	glGenBuffers(1, &g_indexBufferObject);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_indexBufferObject);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertexIndexes), &vertexIndexes, GL_STATIC_DRAW);
 
 	glBindVertexArray(0);
 	glDisableVertexAttribArray(0);
