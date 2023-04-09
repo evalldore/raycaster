@@ -46,7 +46,7 @@ static void	Loop()
 		//Draw
 		glBindVertexArray(g_vertexArrayObject);
 		glBindBuffer(GL_ARRAY_BUFFER, g_vertexBufferObject);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glUseProgram(0);
 		//Game_Draw();
 		SDL_GL_SwapWindow(g_window);
@@ -103,13 +103,21 @@ static void		Exit()
 void	VertexSpecification()
 {
 	// cpu vertices
-	const GLfloat vertexArray[6][3] = {
-		{-0.8f, -0.8f, 0.0f},	//vertex 1 position
-		{1.0f, 0.0f, 0.0f},		//vertex 1 color
-		{0.8f, -0.8f, 0.0f},	//vertex 2 position
-		{0.0f, 1.0f, 0.0f},		//vertex 2 color
-		{0.0f, 0.8f, 0.0f},		//vertex 3 position
-		{0.0f, 0.0f, 1.0f}		//vertex 3 color
+	const GLfloat vertexArray[12][3] = {
+		//first triangle
+		{-0.5f, -0.5f, 0.0f},	//vertex 1 bottom left position
+		{1.0f, 0.0f, 0.0f},		//vertex 1 bottom left color
+		{0.5f, -0.5f, 0.0f},	//vertex 2 bottom right position
+		{0.0f, 1.0f, 0.0f},		//vertex 2 botom right color
+		{-0.5f, 0.5f, 0.0f},	//vertex 3 top left position
+		{0.0f, 0.0f, 1.0f},		//vertex 3 top left color
+		//second triangle
+		{0.5f, -0.5f, 0.0f},	//vertex 4 bottom right position
+		{0.0f, 1.0f, 0.0f},		//vertex 4 botom right color
+		{0.5f, 0.5f, 0.0f},		//vertex 5 top right position
+		{0.0f, 0.0f, 1.0f},		//vertex 5 top right color
+		{-0.5f, 0.5f, 0.0f},	//vertex 6 top left position
+		{0.0f, 0.0f, 1.0f}		//vertex 6 top left color
 	};
 
 	//gpu setup
