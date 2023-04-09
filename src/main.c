@@ -4,6 +4,7 @@ SDL_Window		*g_window = NULL;
 SDL_GLContext	g_context;
 GLuint			g_vertexArrayObject = 0;
 GLuint			g_vertexBufferObject = 0;
+GLuint			g_vertexBufferObject2 = 0;
 GLuint			g_graphicsPipelineShader = 0;
 
 static void	Loop()
@@ -40,13 +41,14 @@ static void	Loop()
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_CULL_FACE);
 		glViewport(0, 0, WIDTH, HEIGHT);
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(1.0f, 0.5f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glUseProgram(g_graphicsPipelineShader);
 		//Draw
 		glBindVertexArray(g_vertexArrayObject);
 		glBindBuffer(GL_ARRAY_BUFFER, g_vertexBufferObject);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glUseProgram(0);
 		//Game_Draw();
 		SDL_GL_SwapWindow(g_window);
 		last_ticks = current_ticks;
@@ -107,23 +109,44 @@ void	VertexSpecification()
 		{0.8f, -0.8f, 0.0f},
 		{0.0f, 0.8f, 0.0f}
 	};
+
+	const GLfloat vertexColors[3][3] = {
+		{1.0f, 0.0f, 0.0f},
+		{0.0f, 1.0f, 0.0f},
+		{0.0f, 0.0f, 1.0f}
+	};
 	//gpu setup
 	glGenVertexArrays(1, &g_vertexArrayObject);
 	glBindVertexArray(g_vertexArrayObject);
 
 	//start generating VBO
+	//position
 	glGenBuffers(1, &g_vertexBufferObject);
 	glBindBuffer(GL_ARRAY_BUFFER, g_vertexBufferObject);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPosition), &vertexPosition, GL_STATIC_DRAW);
+
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	//colors
+	glGenBuffers(1, &g_vertexBufferObject2);
+	glBindBuffer(GL_ARRAY_BUFFER, g_vertexBufferObject2);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexColors), &vertexColors, GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
 	glBindVertexArray(0);
 	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
+
 }
 
 GLuint	CompileShader(GLuint type, const char *src)
 {
 	GLuint	shaderObject;
+	GLint	result;
+	GLint	len;
+
 	if (type == GL_VERTEX_SHADER)
 	{
 		shaderObject = glCreateShader(GL_VERTEX_SHADER);
@@ -134,24 +157,24 @@ GLuint	CompileShader(GLuint type, const char *src)
 	}
 	glShaderSource(shaderObject, 1, &src, NULL);
 	glCompileShader(shaderObject);
+
+	glGetShaderiv(shaderObject, GL_COMPILE_STATUS, &result);
+	if (result == GL_FALSE)
+	{
+		glGetShaderiv(shaderObject, GL_INFO_LOG_LENGTH, &len);
+		GLchar	errorMessages[len];
+		glGetShaderInfoLog(shaderObject, len, &len, errorMessages);
+
+		if (type == GL_VERTEX_SHADER)
+			printf("ERROR: GL_VERTEX_SHADER\n");
+		else if (type == GL_FRAGMENT_SHADER)
+			printf("ERROR: GL_FRAGMENT_SHADER\n");
+		printf("%s\n", errorMessages);
+		glDeleteShader(shaderObject);
+		return (0);
+	}
 	return (shaderObject);
 }
-
-const GLchar	g_vertexSource[] =	
-	"#version 410 core \n"
-	"in vec4 position;\n"
-	"void main()\n"
-	"{\n"
-	"	gl_Position = vec4(position.x, position.y, position.z, position.w);\n"
-	"}\n";
-
-const GLchar	g_fragmentSource[] =	
-	"#version 410 core \n"
-	"out vec4 color;\n"
-	"void main()\n"
-	"{\n"
-	"	color = vec4(1.0f, 0.5f, 0.0f, 1.0f);\n"
-	"}\n";
 
 GLuint	CreateShaderProgram(const char *vertexShaderSource, const char *fragmentShaderSource)
 {
@@ -169,9 +192,39 @@ GLuint	CreateShaderProgram(const char *vertexShaderSource, const char *fragmentS
 	return (programObject);
 }
 
+char	*LoadShader(const char	*filename)
+{
+	char	*results;
+	char	*line;
+	char	*temp;
+	int		fd;
+
+	fd = open(filename, O_RDONLY);
+	if (fd < 0)
+		return (NULL);
+	results = malloc(sizeof(char));
+	results[0] = '\0';
+	while((line = ft_get_next_line(fd)))
+	{
+		temp = results;
+		results = ft_strjoin(results, line);
+		free(temp);
+		free(line);
+	}
+	close(fd);
+	return (results);
+}
+
 void	CreateGraphicsPipeline()
 {
-	g_graphicsPipelineShader = CreateShaderProgram(g_vertexSource, g_fragmentSource);
+	char	*vertexShaderSrc;
+	char	*fragmentShaderSrc;
+
+	vertexShaderSrc = LoadShader("./shaders/test_vert.glsl");
+	fragmentShaderSrc = LoadShader("./shaders/test_frag.glsl");
+	g_graphicsPipelineShader = CreateShaderProgram(vertexShaderSrc, fragmentShaderSrc);
+	free(vertexShaderSrc);
+	free(fragmentShaderSrc);
 }
 
 int	main(int argc, char *argv)
@@ -181,5 +234,5 @@ int	main(int argc, char *argv)
 	CreateGraphicsPipeline();
 	Loop();
 	Exit();
-	return (0);
+	return (EXIT_SUCCESS);
 }
