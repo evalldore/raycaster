@@ -4,7 +4,6 @@ SDL_Window		*g_window = NULL;
 SDL_GLContext	g_context;
 GLuint			g_vertexArrayObject = 0;
 GLuint			g_vertexBufferObject = 0;
-GLuint			g_vertexBufferObject2 = 0;
 GLuint			g_graphicsPipelineShader = 0;
 
 static void	Loop()
@@ -104,17 +103,15 @@ static void		Exit()
 void	VertexSpecification()
 {
 	// cpu vertices
-	const GLfloat vertexPosition[3][3] = {
-		{-0.8f, -0.8f, 0.0f},
-		{0.8f, -0.8f, 0.0f},
-		{0.0f, 0.8f, 0.0f}
+	const GLfloat vertexArray[6][3] = {
+		{-0.8f, -0.8f, 0.0f},	//vertex 1 position
+		{1.0f, 0.0f, 0.0f},		//vertex 1 color
+		{0.8f, -0.8f, 0.0f},	//vertex 2 position
+		{0.0f, 1.0f, 0.0f},		//vertex 2 color
+		{0.0f, 0.8f, 0.0f},		//vertex 3 position
+		{0.0f, 0.0f, 1.0f}		//vertex 3 color
 	};
 
-	const GLfloat vertexColors[3][3] = {
-		{1.0f, 0.0f, 0.0f},
-		{0.0f, 1.0f, 0.0f},
-		{0.0f, 0.0f, 1.0f}
-	};
 	//gpu setup
 	glGenVertexArrays(1, &g_vertexArrayObject);
 	glBindVertexArray(g_vertexArrayObject);
@@ -123,17 +120,13 @@ void	VertexSpecification()
 	//position
 	glGenBuffers(1, &g_vertexBufferObject);
 	glBindBuffer(GL_ARRAY_BUFFER, g_vertexBufferObject);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPosition), &vertexPosition, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexArray), &vertexArray, GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-	//colors
-	glGenBuffers(1, &g_vertexBufferObject2);
-	glBindBuffer(GL_ARRAY_BUFFER, g_vertexBufferObject2);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexColors), &vertexColors, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 6, NULL);
 
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 6, (GLvoid*)(sizeof(GL_FLOAT) * 3));
 
 	glBindVertexArray(0);
 	glDisableVertexAttribArray(0);
