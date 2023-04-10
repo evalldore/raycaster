@@ -7,12 +7,8 @@
 # include <string.h>
 # include <fcntl.h>
 # include <SDL2/SDL.h>
-# include <glad/glad.h>
-# include <libft.h>
 # include "vector.h"
 # include "game.h"
-
-# define WIDTH 1024
-# define HEIGHT 512
+# include "renderer.h"
 
 #endif

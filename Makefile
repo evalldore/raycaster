@@ -1,5 +1,5 @@
 NAME		= raycaster
-SRCS		= main.c game.c vector.c
+SRCS		= main.c game.c vector.c renderer.c
 BINDIR		= bin/
 SRCDIR		= src/
 INCLUDE		= -I include/ -I glad/include -I $(LIBFT)/include

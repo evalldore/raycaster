@@ -1,8 +1,6 @@
 #ifndef GAME_H
 # define GAME_H
-# include <glad/glad.h>
-# include <SDL2/SDL.h>
-# include <GL/gl.h>
+# include "renderer.h"
 
 int		Game_Init();
 void	Game_Update(double dt);
