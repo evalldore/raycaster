@@ -214,7 +214,7 @@ void Renderer_DrawRect(float x, float y, float w, float h)
 }
 
 void Renderer_DrawLine(float sx, float sy, float ex, float ey)
-{
+{	
 	GLfloat lineVertices[2][2] = {
 		{sx, sy},
 		{ex, ey}

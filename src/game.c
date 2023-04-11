@@ -52,17 +52,13 @@ void	Game_KeyReleased(SDL_KeyboardEvent key)
 void	Game_Update(double dt)
 {
 	if (controls.right)
-	{
 		ply.angle += TURN_SPEED * dt;
-		if (ply.angle > (2 * PI))
-			ply.angle -= 2 * PI;
-	}
 	if (controls.left)
-	{
 		ply.angle -= TURN_SPEED * dt;
-		if (ply.angle < 0.0f)
-			ply.angle += 2 * PI;
-	}	
+	if (ply.angle < 0.0f)
+		ply.angle += 2 * PI;
+	else if (ply.angle > 2 * PI)
+		ply.angle -= 2 * PI;
 	if (controls.up)
 	{
 		ply.pos.x += cos(ply.angle) * SPEED * dt;
@@ -200,7 +196,7 @@ static void Draw_Rays()
 			rx = x_v;
 			ry = y_v;
 			rd = dist_v;
-			Renderer_SetColor(0.8f, 0.f, 0.f);
+			Renderer_SetColor(0.7f, 0.f, 0.f);
 		}
 		glLineWidth(3);
 		Renderer_DrawLine(ply.pos.x, ply.pos.y, rx, ry);
@@ -209,13 +205,11 @@ static void Draw_Rays()
 			ca += 2 * PI;
 		else if (ca > 2 * PI)
 			ca -= 2 * PI;
-
 		rd *= cos(ca);
-
-		float lineH = (TILE_SIZE * 320) / rd;
-		float lineO = 160 - lineH / 2;
-		if (lineH > 320.0f)
-			lineH = 320.0f;
+		float lineH = (TILE_SIZE * HEIGHT) / rd;
+		if (lineH > HEIGHT)
+			lineH = HEIGHT;
+		float lineO = (HEIGHT >> 1) - lineH / 2;
 		glLineWidth(8);
 		Renderer_DrawLine(r * 8 + 530, lineO, r * 8 + 530, lineH + lineO);
 		ra += DR;
@@ -229,6 +223,12 @@ static void Draw_Rays()
 static void Draw_Map()
 {
 	uint32_t	x, y;
+
+	Renderer_SetColor(0.4f, 0.4f, 1.0f);
+	Renderer_DrawRect(0, 0, WIDTH, HEIGHT >> 1);
+	Renderer_SetColor(0.2f, 0.2f, 0.2f);
+	Renderer_DrawRect(0, HEIGHT >> 1, WIDTH, HEIGHT);
+
 	for (y = 0; y < map_h; y++)
 	{
 		for (x = 0; x < map_h; x++)
@@ -244,8 +244,7 @@ static void Draw_Map()
 
 void	Game_Draw()
 {
-	//Renderer_SetColor(1.0f, 0.0f, 0.0f);
-	//Renderer_DrawLine(0.0f, 0.0f, 1024.0f, 512.0f);
+
 	Draw_Map();
 	Draw_Rays();
 	Draw_Player();
