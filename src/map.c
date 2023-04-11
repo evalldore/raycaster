@@ -171,7 +171,7 @@ void Map_Draw(float x, float y, float a)
 		float lineH = fmin((TILE_SIZE * HEIGHT) / rd, HEIGHT);
 		float lineO = (HEIGHT >> 1) - lineH / 2;
 		glLineWidth(8);
-		Renderer_DrawLine(r * 8, lineO, r * 8, lineH + lineO);
+		Renderer_DrawLine(4 + r * 8, lineO, 4 + r * 8, lineH + lineO);
 		ra = rotate(ra, DR);
 	}
 }
