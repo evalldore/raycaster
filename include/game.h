@@ -1,13 +1,12 @@
 #ifndef GAME_H
 # define GAME_H
 # include <stdbool.h>
-# include <math.h>
-# include "vector.h"
 # include "renderer.h"
+# include "utils.h"
+# include "map.h"
 # define SPEED 120
 # define TURN_SPEED 5
-# define MAP_SIZE 64
-# define TILE_SIZE 64
+
 typedef struct 
 {
 	bool up;
