@@ -1,13 +1,15 @@
 #include "renderer.h"
 
 SDL_GLContext	g_context;
-GLuint			g_vertexArrayObject = 0;
-GLuint			g_vertexBufferObject = 0;
-GLuint			g_indexBufferObject = 0;
 GLuint			g_graphicsPipelineShader = 0;
 GLfloat			g_shaderColor[3] = {1.0f, 1.0f, 1.0f};
 GLuint			g_lineVertexArray = 0;
 GLuint			g_lineVertexBuffer = 0;
+GLuint			g_pointVertexArray = 0;
+GLuint			g_pointVertexBuffer = 0;
+GLuint			g_rectVertexArray = 0;
+GLuint			g_rectVertexBuffer = 0;
+GLuint			g_rectIndexBuffer = 0;
 
 static void		GLClearAllErrors()
 {
@@ -82,7 +84,7 @@ static GLuint	CompileShader(GLuint type, const char *src)
 	return (shaderObject);
 }
 
-static void	VertexSpecification()
+/*static void	VertexSpecification()
 {
 	// cpu vertices
 	const GLfloat vertexArray[8][3] = {
@@ -128,7 +130,7 @@ static void	VertexSpecification()
 	glBindVertexArray(0);
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
-}
+}*/
 
 static GLuint	CreateShaderProgram(const char *vertexShaderSource, const char *fragmentShaderSource)
 {
@@ -154,6 +156,7 @@ void Renderer_SetColor(float r, float g, float b)
 	g_shaderColor[0] = r;
 	g_shaderColor[1] = g;
 	g_shaderColor[2] = b;
+
 	GLint colorLocation = glGetUniformLocation(g_graphicsPipelineShader, "color");
 	glUniform3fv(colorLocation, 1, g_shaderColor);
 }
@@ -170,20 +173,52 @@ static void	CreateGraphicsPipeline()
 	free(fragmentShaderSrc);
 }
 
-static void Init_Line()
+void Renderer_DrawPoint(float x, float y)
 {
-	//gpu setup
-	glGenVertexArrays(1, &g_lineVertexArray);
-	glGenBuffers(1, &g_lineVertexBuffer);
+	GLfloat point[2] = {x, y};
+
+	glBindVertexArray(g_pointVertexArray);
+		glBindBuffer(GL_ARRAY_BUFFER, g_pointVertexBuffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(point), &point, GL_DYNAMIC_DRAW);
+		glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+			glDrawArrays(GL_POINTS, 0, 1);
+		glDisableVertexAttribArray(0);
+	glBindVertexArray(0);
+}
+
+void Renderer_DrawRect(float x, float y, float w, float h)
+{
+	GLfloat vertexArray[4][2] = {
+		{x, y + h},
+		{x + w, y + h},
+		{x, y},
+		{x + w, y}
+	};
+
+	GLuint vertexIndexes[2][3] = {
+		{2, 0, 1},
+		{3, 2, 1}
+	};
+
+	glBindVertexArray(g_pointVertexArray);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_rectIndexBuffer);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertexIndexes), &vertexIndexes, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, g_pointVertexBuffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertexArray), &vertexArray, GL_DYNAMIC_DRAW);
+		glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+		glDisableVertexAttribArray(0);
+	glBindVertexArray(0);
 }
 
 void Renderer_DrawLine(float sx, float sy, float ex, float ey)
 {
-	static GLfloat lineVertices[2][2];
-	lineVertices[0][0] = ((2.0f * sx) / WIDTH) - 1.0f;;
-	lineVertices[0][1] = 1.0f - ((2.0f * sy) / HEIGHT);;
-	lineVertices[1][0] = ((2.0f * ex) / WIDTH) - 1.0f;;
-	lineVertices[1][1] = 1.0f - ((2.0f * ey) / HEIGHT);;
+	GLfloat lineVertices[2][2] = {
+		{sx, sy},
+		{ex, ey}
+	};
 
 	glBindVertexArray(g_lineVertexArray);
 		glBindBuffer(GL_ARRAY_BUFFER, g_lineVertexBuffer);
@@ -210,7 +245,17 @@ void	Renderer_Init(SDL_Window *window)
 	}
 	CreateGraphicsPipeline();
 	//VertexSpecification();
-	Init_Line();
+	
+	glGenVertexArrays(1, &g_lineVertexArray);
+	glGenBuffers(1, &g_lineVertexBuffer);
+
+	glGenVertexArrays(1, &g_pointVertexArray);
+	glGenBuffers(1, &g_pointVertexBuffer);
+
+	glGenVertexArrays(1, &g_rectVertexArray);
+	glGenBuffers(1, &g_rectVertexBuffer);
+	glGenBuffers(1, &g_rectIndexBuffer);
+
 	printf("Vendor: %s\n", glGetString(GL_VENDOR));
 	printf("Renderer: %s\n", glGetString(GL_RENDERER));
 	printf("OpenGL version: %s\n", glGetString(GL_VERSION));
@@ -224,12 +269,15 @@ void	Renderer_Clear()
 
 void	Renderer_PreDraw()
 {
+
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glViewport(0, 0, WIDTH, HEIGHT);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(g_graphicsPipelineShader);
+	GLint screenSizeLocation = glGetUniformLocation(g_graphicsPipelineShader, "screenSize");
+	glUniform2f(screenSizeLocation, WIDTH, HEIGHT);
 }
 
 void	Renderer_PostDraw()

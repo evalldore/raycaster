@@ -1,5 +1,5 @@
 NAME		= raycaster
-SRCS		= main.c game.c vector.c renderer.c
+SRCS		= main.c game.c renderer.c
 BINDIR		= bin/
 SRCDIR		= src/
 INCLUDE		= -I include/ -I glad/include -I $(LIBFT)/include
@@ -9,7 +9,7 @@ SDL2		= `sdl2-config --cflags --libs`
 CFLAGS		= -ldl
 LIBFT		= ./lib/libft
 CC			= gcc
-LIBS		= $(LIBFT)/libft.a
+LIBS		= $(LIBFT)/libft.a -lm
 
 all : libft $(NAME)
 
