@@ -14,39 +14,35 @@ static u_int32_t	map[][8] = {
 	{1, 1, 1, 1, 1, 1, 1, 1}
 };
 
-/*static void Draw_Map()
+static void Draw_Map(float x, float y, float a)
 {
-	uint32_t	x, y;
+	uint32_t	coordX, coordY;
 
 	Renderer_SetColor(0.4f, 0.4f, 1.0f);
 	Renderer_DrawRect(0, 0, WIDTH, HEIGHT >> 1);
 	Renderer_SetColor(0.2f, 0.2f, 0.2f);
 	Renderer_DrawRect(0, HEIGHT >> 1, WIDTH, HEIGHT);
 
-	for (y = 0; y < map_h; y++)
+	for (coordY = 0; coordY < map_h; coordY++)
 	{
-		for (x = 0; x < map_h; x++)
+		for (coordX = 0; coordX < map_h; coordX++)
 		{
-			if (map[y][x] == 1)
+			if (map[coordY][coordX] == 1)
 				Renderer_SetColor(0.0f, 0.0f, 0.0f);
 			else
 				Renderer_SetColor(1.0f, 1.0f, 1.0f);
-			Renderer_DrawRect(x * TILE_SIZE + 1, y * TILE_SIZE + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+			Renderer_DrawRect(coordX * TILE_SIZE + 1, coordY * TILE_SIZE + 1, TILE_SIZE - 2, TILE_SIZE - 2);
 		}
 	}
-}*/
 
-/*static void Draw_Player()
-{	
-	//position
 	Renderer_SetColor(1.0f, 0.0f, 0.0f);
 	glPointSize(10);
-	Renderer_DrawPoint(ply.pos.x, ply.pos.y);
+	Renderer_DrawPoint(x * TILE_SIZE, y * TILE_SIZE);
 	//direction
 	Renderer_SetColor(0.0f, 0.0f, 1.0f);
 	glLineWidth(2);
-	Renderer_DrawLine(ply.pos.x, ply.pos.y, ply.pos.x + cos(ply.angle) * 25, ply.pos.y + sin(ply.angle) * 25);
-}*/
+	Renderer_DrawLine(x * TILE_SIZE, y * TILE_SIZE, (x * TILE_SIZE) + cos(a) * 25, (y * TILE_SIZE) + sin(a) * 25);
+}
 
 static void	Draw_Ceiling()
 {
@@ -60,7 +56,8 @@ static void	Draw_Floor()
 	Renderer_DrawRect(0.f, HEIGHT >> 1, WIDTH, HEIGHT);
 }
 
-void Map_Draw(float x, float y, float a)
+
+/*void Map_Draw(float x, float y, float a)
 {
 	int r, mx, my, dof;
 	float rx, ry, ra, xo, yo, rd;
@@ -174,4 +171,152 @@ void Map_Draw(float x, float y, float a)
 		Renderer_DrawLine(4 + r * 8, lineO, 4 + r * 8, lineH + lineO);
 		ra = rotate(ra, DR);
 	}
+}*/
+
+void Map_Draw(float x, float y, float a)
+{
+	float ra;
+	int r;
+
+	//Draw_Map(x, y, a);
+
+	Draw_Ceiling();
+	Draw_Floor();
+	ra = a - (DR * 30);
+	for(r = 0; r < 60; r++)
+	{
+		fvec_t rayDir = {cos(ra), sin(ra)};
+		ivec_t mapCheck = {(int)x, (int)y};
+		fvec_t rayStep = {
+			(rayDir.x == 0) ? INFINITY : fabs(1.0f / rayDir.x),
+			(rayDir.y == 0) ? INFINITY : fabs(1.0f / rayDir.y),
+		};
+		fvec_t vRayLength1D = {
+			(((float)mapCheck.x + 1) - x) * rayStep.x,
+			(((float)mapCheck.y + 1) - y) * rayStep.y
+		};
+		ivec_t vStep = {1, 1};
+		if (rayDir.x < 0) 
+		{
+			vStep.x = -1;
+			vRayLength1D.x = (x - (float)mapCheck.x) * rayStep.x;
+		}
+		if (rayDir.y < 0) 
+		{
+			vStep.y = -1;
+			vRayLength1D.y = (y - (float)mapCheck.y) * rayStep.y;
+		}
+		bool bTileFound = false;
+		float fDistance = 0.0f;
+		int	dof = 0;
+		while (!bTileFound && dof <= 10)
+		{
+			if (vRayLength1D.x < vRayLength1D.y) 
+			{
+				mapCheck.x += vStep.x;
+				fDistance = vRayLength1D.x;
+				vRayLength1D.x += rayStep.x;
+				Renderer_SetColor(1.0f, 0.0f, 0.0f);
+			} 
+			else 
+			{
+				mapCheck.y += vStep.y;
+				fDistance = vRayLength1D.y;
+				vRayLength1D.y += rayStep.y;
+				Renderer_SetColor(0.7f, 0.0f, 0.0f);
+			}
+			if (mapCheck.x >= 0 && mapCheck.x < map_w && mapCheck.y >= 0 && mapCheck.y < map_h)
+				bTileFound = map[mapCheck.y][mapCheck.x] == 1;
+			dof++;
+		}
+		if (bTileFound)
+		{
+			float ca = rotate(a, -ra);
+			fDistance *= cos(ca);
+			float lineH = fmin((TILE_SIZE * HEIGHT) / (fDistance * TILE_SIZE), HEIGHT);
+			float lineO = (HEIGHT >> 1) - lineH / 2;
+			glLineWidth(8);
+			Renderer_DrawLine(4 + r * 8, lineO, 4 + r * 8, lineH + lineO);
+		}
+		ra = rotate(ra, DR);
+	}
 }
+
+/*void Map_Draw(float x, float y, float a)
+{
+	int	r;
+	float ra;
+	int	mapX, mapY;
+	float sideDistX, sideDistY;
+	float deltaDistX, deltaDistY;
+	int stepX, stepY;
+	bool hit, isHoriz;
+	float dirX, dirY;
+	int dof;
+
+	Draw_Map(x, y, a);
+	ra = a; //rotate(a, DR * -30);
+	for (r = 0; r < 1; r++)
+	{
+		dirX = cos(ra);
+		dirY = sin(ra);
+		mapX = (int)x >> 6;
+		mapY = (int)y >> 6;
+		deltaDistX = (dirX == 0) ? INFINITY : abs(1.0f / dirX);
+		deltaDistY = (dirY == 0) ? INFINITY : abs(1.0f / dirY);
+		sideDistX = (((mapX + 1) * TILE_SIZE) - x) * deltaDistX;
+		sideDistY = (((mapY + 1) * TILE_SIZE) - y) * deltaDistY;
+		stepX = 1;
+		stepY = 1;
+		if (dirX < 0)
+		{
+			stepX = -1;
+			sideDistX = (x - (mapX * TILE_SIZE)) * deltaDistX;
+		}
+		if (dirY < 0)
+		{
+			stepY = -1;
+			sideDistY = (y - (mapY * TILE_SIZE)) * deltaDistY;
+		}
+		hit = false;
+		isHoriz = false;
+		dof = 0;
+		while (!hit && dof <= 8)
+		{
+			if (sideDistX < sideDistY)
+			{
+				sideDistX += (deltaDistX * TILE_SIZE);
+				mapX += stepX;
+				isHoriz = true;
+			}
+			else
+			{
+				sideDistY += (deltaDistY * TILE_SIZE);
+				mapY += stepY;
+				isHoriz = false;
+			}
+			if ((mapX < 0 || mapX >= map_w) || (mapY < 0 || mapY >= map_h))
+				break;
+				hit = (map[mapY][mapX] == 1);
+			dof++;
+		}
+		if (hit)
+		{
+			float perpWallDist;
+			if(isHoriz) 
+				perpWallDist = (sideDistX - deltaDistX);
+			else
+				perpWallDist = (sideDistY - deltaDistY);
+			float lineH = fmin((TILE_SIZE * HEIGHT) / perpWallDist, HEIGHT);
+			float lineO = (HEIGHT >> 1) - lineH / 2;
+			//glLineWidth(8);
+			//Renderer_SetColor(1.0f, 0.0f, 0.0f);
+			//Renderer_DrawLine(512 + r * 8, lineO, 512 + r * 8, lineH + lineO);
+			//glLineWidth(1);
+			Renderer_SetColor(1.0f, 0.0f, 0.0f);
+			Renderer_DrawRect(mapX * TILE_SIZE, mapY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+			//Renderer_DrawLine(x, y, x + dirX * 250, y + dirY * 250);
+		}
+		ra = rotate(ra, DR);
+	}
+}*/

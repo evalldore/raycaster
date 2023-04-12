@@ -4,7 +4,7 @@
 # include "renderer.h"
 # include "utils.h"
 # include "map.h"
-# define SPEED 120
+# define SPEED 2
 # define TURN_SPEED 5
 
 typedef struct 
