@@ -69,20 +69,17 @@ void Map_Draw(float x, float y, float a)
 {
 	Draw_Ceiling();
 	Draw_Floor();
-	float rayAngle = rotate(a, -DR * 64);
 	float planeAngle = rotate(a, DR * 90);
 	fvec_t planeDir = {cos(planeAngle), sin(planeAngle)};
-	fvec_t dir = {cos(a), sin(a)};
-	glLineWidth(4.f);
-	Renderer_SetColor(1.0f, 1.0f, 1.0f);
-	Renderer_DrawLine(x + (planeDir.x * -30.f), y + (planeDir.y * -30.f), x + (planeDir.x * 30.f), y + (planeDir.y * 30.f));
+	fvec_t angleDir = {cos(a), sin(a)};
 	int ray;
-	for(ray = 0; ray < 128; ray++)
+	for(ray = 0; ray < WIDTH; ray++)
 	{
-		float cameraX = 2.0f * (float)(ray / 128) - 1.0f;
-		//float rayDirX = dir.x + planeX * cameraX;
-    	//float rayDirY = dir.y + planeY * cameraX;
-		fvec_t rayDir = {cos(rayAngle), sin(rayAngle)};
+		float cameraX = 2.0f * ((float)(ray) / (float)WIDTH) - 1.0f;
+		fvec_t rayDir = {
+			angleDir.x + (planeDir.x * 0.66f) * cameraX,
+			angleDir.y + (planeDir.y * 0.66f) * cameraX,
+		};
 		ivec_t mapCheck = {(int)x, (int)y};
 		fvec_t rayStep = {
 			(rayDir.x == 0) ? INFINITY : fabs(1.0f / rayDir.x),
@@ -128,12 +125,12 @@ void Map_Draw(float x, float y, float a)
 		}
 		if (bTileFound)
 		{
-			distance *= cos(rayAngle - a);
-			float lineH = fmin((TILE_SIZE * HEIGHT) / (distance * TILE_SIZE), HEIGHT);
-			float lineO = (HEIGHT >> 1) - lineH / 2;
-			glLineWidth(8);
-			Renderer_DrawLine(4 + ray * 8, lineO, 4 + ray * 8, lineH + lineO);
+			//distance *= cos(rayAngle - a);
+			float lineH = (float)(HEIGHT / 2) - ((float)(HEIGHT / 2) / distance);
+			float lineO = HEIGHT - lineH;
+			//glLineWidth(8);
+			Renderer_DrawLine(ray, lineO, ray, lineH);
 		}
-		rayAngle = rotate(rayAngle, DR);
+		//rayAngle = rotate(rayAngle, DR);
 	}
 }
