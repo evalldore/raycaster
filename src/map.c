@@ -1,6 +1,5 @@
 #include "map.h"
 #include "renderer.h"
-#include "utils.h"
 
 static uint32_t		map_w = 16, map_h = 16;
 static u_int32_t	map[][16] = {
@@ -65,6 +64,13 @@ static void	Draw_Floor()
 	Renderer_DrawRect(0.f, HEIGHT >> 1, WIDTH, HEIGHT);
 }
 
+int Map_GetTile(int x, int y)
+{
+	if (x >= 0 && x < map_w && y >= 0 && y < map_h)
+		return (map[y][x]);
+	return (0);
+}
+
 void Map_Draw(float x, float y, float a)
 {
 	Draw_Ceiling();
@@ -73,9 +79,11 @@ void Map_Draw(float x, float y, float a)
 	fvec_t planeDir = {cos(planeAngle), sin(planeAngle)};
 	fvec_t angleDir = {cos(a), sin(a)};
 	int ray;
-	for(ray = 0; ray < WIDTH; ray++)
+	int rayWidth = 8;
+	int rayAmount = (WIDTH / rayWidth);
+	for(ray = 0; ray < rayAmount; ray++)
 	{
-		float cameraX = 2.0f * ((float)(ray) / (float)WIDTH) - 1.0f;
+		float cameraX = 2.0f * ((float)(ray) / (float)rayAmount) - 1.0f;
 		fvec_t rayDir = {
 			angleDir.x + (planeDir.x * 0.66f) * cameraX,
 			angleDir.y + (planeDir.y * 0.66f) * cameraX,
@@ -100,10 +108,10 @@ void Map_Draw(float x, float y, float a)
 			vStep.y = -1;
 			rayLength.y = (y - (float)mapCheck.y) * rayStep.y;
 		}
-		bool bTileFound = false;
+		bool tileFound = false;
 		float distance = 0.0f;
 		int	dof = 0;
-		while (!bTileFound && dof <= 16)
+		while (!tileFound && dof <= 16)
 		{
 			if (rayLength.x < rayLength.y) 
 			{
@@ -119,18 +127,15 @@ void Map_Draw(float x, float y, float a)
 				rayLength.y += rayStep.y;
 				Renderer_SetColor(0.7f, 0.0f, 0.0f);
 			}
-			if (mapCheck.x >= 0 && mapCheck.x < map_w && mapCheck.y >= 0 && mapCheck.y < map_h)
-				bTileFound = map[mapCheck.y][mapCheck.x] == 1;
+			tileFound = (Map_GetTile(mapCheck.x, mapCheck.y) == 1);
 			dof++;
 		}
-		if (bTileFound)
+		if (tileFound)
 		{
-			//distance *= cos(rayAngle - a);
-			float lineH = (float)(HEIGHT / 2) - ((float)(HEIGHT / 2) / distance);
+			float lineH = (float)(HEIGHT >> 1) - ((float)(HEIGHT >> 1) / distance);
 			float lineO = HEIGHT - lineH;
-			//glLineWidth(8);
-			Renderer_DrawLine(ray, lineO, ray, lineH);
+			glLineWidth(rayWidth);
+			Renderer_DrawLine((rayWidth >> 1) + ray * 8, lineO, (rayWidth >> 1) + ray * 8, lineH);
 		}
-		//rayAngle = rotate(rayAngle, DR);
 	}
 }

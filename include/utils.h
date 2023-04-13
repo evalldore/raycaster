@@ -1,6 +1,7 @@
 #ifndef	UTILS_H
 # define UTILS_H
 # include <math.h>
+# include <stdbool.h>
 # include "vector.h"
 # define PI 3.14159265359
 # define P2 PI/2

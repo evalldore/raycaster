@@ -42,8 +42,15 @@ void	Game_Update(double dt)
 		ply.angle = rotate(ply.angle, -TURN_SPEED * dt);
 	if (controls.up)
 	{
-		ply.pos.x += cos(ply.angle) * SPEED * dt;
-		ply.pos.y += sin(ply.angle) * SPEED * dt;
+		ivec_t forwardCoords = {
+			ply.pos.x + cos(ply.angle) * 0.5f,
+			ply.pos.y + sin(ply.angle) * 0.5f
+		};
+		if (Map_GetTile(forwardCoords.x, forwardCoords.y) != 1)
+		{
+			ply.pos.x += cos(ply.angle) * SPEED * dt;
+			ply.pos.y += sin(ply.angle) * SPEED * dt;
+		}
 	}
 	if (controls.down)
 	{
