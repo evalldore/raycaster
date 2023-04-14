@@ -5,8 +5,8 @@
 # include <glad/glad.h>
 # include <fcntl.h>
 # include <libft.h>
-# define WIDTH 1024
-# define HEIGHT 512
+# define WIDTH 1920
+# define HEIGHT 1080
 
 void	Renderer_Init(SDL_Window *window);
 void	Renderer_PreDraw();

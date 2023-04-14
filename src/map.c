@@ -94,7 +94,7 @@ void Map_Draw(float x, float y, float a)
 	int rayWidth = 1;
 	int rayAmount = (WIDTH / rayWidth);
 	u_int32_t rayHit = 0;
-	GLfloat	*lineVertices = malloc((sizeof(GLfloat) * 4) * rayAmount);
+	GLfloat	*lineVertices = malloc((sizeof(GLfloat) * 10) * rayAmount);
 
 	for(ray = 0; ray < rayAmount; ray++)
 	{
@@ -133,14 +133,18 @@ void Map_Draw(float x, float y, float a)
 				mapCheck.x += vStep.x;
 				distance = rayLength.x;
 				rayLength.x += rayStep.x;
-				//Renderer_SetColor(1.0f, 0.0f, 0.0f);
+				wallColor[0] = 1.0f;
+				wallColor[1] = 0.0f;
+				wallColor[2] = 0.0f;
 			} 
 			else 
 			{
 				mapCheck.y += vStep.y;
 				distance = rayLength.y;
 				rayLength.y += rayStep.y;
-				//Renderer_SetColor(0.7f, 0.0f, 0.0f);
+				wallColor[0] = 1.00f;
+				wallColor[1] = 1.0f;
+				wallColor[2] = 1.0f;
 			}
 			tileFound = (Map_GetTile(mapCheck.x, mapCheck.y) == 1);
 			dof++;
@@ -150,53 +154,39 @@ void Map_Draw(float x, float y, float a)
 		{
 			float lineH = (float)(HEIGHT >> 1) - ((float)(HEIGHT >> 1) / distance);
 			float lineO = HEIGHT - lineH;
-			uint32_t rayVertIndex = rayHit * 4;
+			uint32_t rayVertIndex = rayHit * 10;
+			//start position
 			lineVertices[rayVertIndex] = (GLfloat)(ray * rayWidth);
 			lineVertices[rayVertIndex + 1] = (GLfloat)lineO;
-			lineVertices[rayVertIndex + 2] = (GLfloat)(ray * rayWidth);
-			lineVertices[rayVertIndex + 3] = (GLfloat)lineH;
+			//color start vertex
+			lineVertices[rayVertIndex + 2] = wallColor[0];
+			lineVertices[rayVertIndex + 3] = wallColor[1];
+			lineVertices[rayVertIndex + 4] = wallColor[2];
+			//end position
+			lineVertices[rayVertIndex + 5] = (GLfloat)(ray * rayWidth);
+			lineVertices[rayVertIndex + 6] = (GLfloat)lineH;
+			//color end vertex
+			lineVertices[rayVertIndex + 7] = wallColor[0];
+			lineVertices[rayVertIndex + 8] = wallColor[1];
+			lineVertices[rayVertIndex + 9] = wallColor[2];
 			rayHit++;
-			//glLineWidth(rayWidth);
-			//Renderer_DrawLine((rayWidth >> 1) + ray * rayWidth, lineO, (rayWidth >> 1) + ray * rayWidth, lineH);
 		}
 	}
 
 	glUseProgram(g_rayShader);
-		glUniform3fv(glGetUniformLocation(g_rayShader, "color"), 1, wallColor);
 		glUniform2f(glGetUniformLocation(g_rayShader, "screenSize"), (GLfloat)WIDTH, (GLfloat)HEIGHT);
 		glBindVertexArray(g_mapVertexArray);
 		glBindBuffer(GL_ARRAY_BUFFER, g_mapVertexBuffer);
-		glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * 4) * rayHit, lineVertices, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * 10) * rayHit, lineVertices, GL_DYNAMIC_DRAW);
 		glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-			glLineWidth(rayWidth);
-			glDrawArrays(GL_LINES, 0, rayHit * 2);
-		glDisableVertexAttribArray(0);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, NULL);
+		glEnableVertexAttribArray(1);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 5, (GLvoid*)(sizeof(GL_FLOAT) * 2));
+		glLineWidth(rayWidth);
+		glDrawArrays(GL_LINES, 0, rayHit * 2);
 		glBindVertexArray(0);
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
 	glUseProgram(0);
 	free(lineVertices);
-
-	/*GLfloat	wallColor[3] = {1.0f, 0.0f, 0.0f};
-	GLfloat	lineVertices[12] = {
-		512.0f, 0.0f,
-		512.0f, HEIGHT,
-		0.0f, 0.0f,
-		0.0f, HEIGHT,
-		1024.0f, 0.0f,
-		1024.0f, HEIGHT
-	};
-	printf("%lu\n", sizeof(lineVertices));
-	glUseProgram(g_rayShader);
-		glUniform3fv(glGetUniformLocation(g_rayShader, "color"), 1, wallColor);
-		glUniform2f(glGetUniformLocation(g_rayShader, "screenSize"), WIDTH, HEIGHT);
-		glBindVertexArray(g_mapVertexArray);
-		glBindBuffer(GL_ARRAY_BUFFER, g_mapVertexBuffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(lineVertices), &lineVertices, GL_DYNAMIC_DRAW);
-		glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-			glLineWidth(8);
-			glDrawArrays(GL_LINES, 0, 6);
-		glDisableVertexAttribArray(0);
-		glBindVertexArray(0);
-	glUseProgram(0);*/
 }
