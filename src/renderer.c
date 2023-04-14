@@ -288,12 +288,12 @@ void	Renderer_PreDraw()
 	glViewport(0, 0, WIDTH, HEIGHT);
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glUseProgram(g_graphicsPipelineShader);
-	GLint screenSizeLocation = glGetUniformLocation(g_graphicsPipelineShader, "screenSize");
-	glUniform2f(screenSizeLocation, WIDTH, HEIGHT);
+	//glUseProgram(g_graphicsPipelineShader);
+	//GLint screenSizeLocation = glGetUniformLocation(g_graphicsPipelineShader, "screenSize");
+	//glUniform2f(screenSizeLocation, WIDTH, HEIGHT);
 }
 
 void	Renderer_PostDraw()
 {
-	glUseProgram(0);
+	//glUseProgram(0);
 }
