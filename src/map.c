@@ -136,9 +136,10 @@ void Map_Draw(float x, float y, float a)
 				txtXCoord = (float)mapCheck.y - (y + rayDir.y * distance);
 				rayLength.x += rayStep.x;
 				//printf("tile: %d/%f\n", mapCheck.x, txtXCoord);
-				wallColor[0] = 1.0f;
-				wallColor[1] = 1.0f;
-				wallColor[2] = 1.0f;
+				wallColor[0] = fmax(1.0f - (distance / 11.0f), 0.0f);
+				wallColor[1] = fmax(1.0f - (distance / 11.0f), 0.0f);
+				wallColor[2] = fmax(1.0f - (distance / 11.0f), 0.0f);
+				printf("%f\n", distance);
 			} 
 			else 
 			{
@@ -146,9 +147,9 @@ void Map_Draw(float x, float y, float a)
 				distance = rayLength.y;
 				txtXCoord = (float)mapCheck.x - (x + rayDir.x * distance);
 				rayLength.y += rayStep.y;
-				wallColor[0] = 0.75f;
-				wallColor[1] = 0.75f;
-				wallColor[2] = 0.75f;
+				wallColor[0] = fmax(1.0f - (distance / 11.0f), 0.0f) * 0.75f;
+				wallColor[1] = fmax(1.0f - (distance / 11.0f), 0.0f) * 0.75f;
+				wallColor[2] = fmax(1.0f - (distance / 11.0f), 0.0f) * 0.75f;
 			}
 			tileFound = (Map_GetTile(mapCheck.x, mapCheck.y) == 1);
 			dof++;
