@@ -32,6 +32,8 @@ static void	Loop()
 		}
 		current_ticks = SDL_GetTicks();
 		delta_time = (double)(current_ticks - last_ticks) / 1000.0;
+		//char *fpsText = ft_itoa((int)(1000.f / delta_time));
+		//SDL_SetWindowTitle(g_window, fpsText);
 		Game_Update(delta_time);
 		Renderer_PreDraw();
 		Game_Draw();

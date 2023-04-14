@@ -49,16 +49,22 @@ void	Game_Update(double dt)
 			ply.pos.x + cos(ply.angle) * 0.5f,
 			ply.pos.y + sin(ply.angle) * 0.5f
 		};
-		if (Map_GetTile(forwardCoords.x, forwardCoords.y) != 1)
-		{
+		if (Map_GetTile(forwardCoords.x, (int)ply.pos.y) == 0)
 			ply.pos.x += cos(ply.angle) * SPEED * dt;
+		if (Map_GetTile((int)ply.pos.x, forwardCoords.y) == 0)
 			ply.pos.y += sin(ply.angle) * SPEED * dt;
-		}
 	}
 	if (controls.down)
 	{
-		ply.pos.x -= cos(ply.angle) * SPEED * dt;
-		ply.pos.y -= sin(ply.angle) * SPEED * dt;
+		ivec_t forwardCoords = {
+			ply.pos.x - cos(ply.angle) * 0.5f,
+			ply.pos.y - sin(ply.angle) * 0.5f
+		};
+		if (Map_GetTile(forwardCoords.x, (int)ply.pos.y) == 0)
+			ply.pos.x -= cos(ply.angle) * SPEED * dt;
+		if (Map_GetTile((int)ply.pos.x, forwardCoords.y) == 0)
+			ply.pos.y -= sin(ply.angle) * SPEED * dt;
+
 	}
 }
 

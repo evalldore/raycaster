@@ -92,7 +92,7 @@ void Map_Draw(float x, float y, float a)
 	fvec_t planeDir = {cos(planeAngle), sin(planeAngle)};
 	fvec_t angleDir = {cos(a), sin(a)};
 	int ray;
-	int rayWidth = 8;
+	int rayWidth = 1;
 	int rayAmount = (WIDTH / rayWidth);
 	u_int32_t rayHit = 0;
 	GLfloat	*lineVertices = malloc((sizeof(GLfloat) * 14) * rayAmount);
@@ -139,7 +139,6 @@ void Map_Draw(float x, float y, float a)
 				wallColor[0] = fmax(1.0f - (distance / 11.0f), 0.0f);
 				wallColor[1] = fmax(1.0f - (distance / 11.0f), 0.0f);
 				wallColor[2] = fmax(1.0f - (distance / 11.0f), 0.0f);
-				printf("%f\n", distance);
 			} 
 			else 
 			{
