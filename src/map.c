@@ -87,6 +87,7 @@ void Map_Draw(float x, float y, float a)
 	//Draw_Ceiling();
 	//Draw_Floor();
 	GLfloat	wallColor[3] = {1.0f, 0.0f, 0.0f};
+	GLfloat txtXCoord = 0.0f;
 	float planeAngle = rotate(a, DR * 90);
 	fvec_t planeDir = {cos(planeAngle), sin(planeAngle)};
 	fvec_t angleDir = {cos(a), sin(a)};
@@ -132,7 +133,9 @@ void Map_Draw(float x, float y, float a)
 			{
 				mapCheck.x += vStep.x;
 				distance = rayLength.x;
+				txtXCoord = (float)mapCheck.y - (y + rayDir.y * distance);
 				rayLength.x += rayStep.x;
+				//printf("tile: %d/%f\n", mapCheck.x, txtXCoord);
 				wallColor[0] = 1.0f;
 				wallColor[1] = 1.0f;
 				wallColor[2] = 1.0f;
@@ -141,6 +144,7 @@ void Map_Draw(float x, float y, float a)
 			{
 				mapCheck.y += vStep.y;
 				distance = rayLength.y;
+				txtXCoord = (float)mapCheck.x - (x + rayDir.x * distance);
 				rayLength.y += rayStep.y;
 				wallColor[0] = 0.75f;
 				wallColor[1] = 0.75f;
@@ -163,8 +167,8 @@ void Map_Draw(float x, float y, float a)
 			lineVertices[rayVertIndex + 3] = wallColor[1];
 			lineVertices[rayVertIndex + 4] = wallColor[2];
 			//start vertex coords;
-			lineVertices[rayVertIndex + 5] = 0.0f;
-			lineVertices[rayVertIndex + 6] = 0.0f;
+			lineVertices[rayVertIndex + 5] = (float)txtXCoord;
+			lineVertices[rayVertIndex + 6] = 1.0f;
 			//end position
 			lineVertices[rayVertIndex + 7] = (GLfloat)(ray * rayWidth);
 			lineVertices[rayVertIndex + 8] = (GLfloat)lineH;
@@ -173,8 +177,8 @@ void Map_Draw(float x, float y, float a)
 			lineVertices[rayVertIndex + 10] = wallColor[1];
 			lineVertices[rayVertIndex + 11] = wallColor[2];
 			//vertex end coords
-			lineVertices[rayVertIndex + 12] = 0.0f;
-			lineVertices[rayVertIndex + 13] = 1.0f;
+			lineVertices[rayVertIndex + 12] = (float)txtXCoord;
+			lineVertices[rayVertIndex + 13] = 0.0f;
 			rayHit++;
 		}
 	}
