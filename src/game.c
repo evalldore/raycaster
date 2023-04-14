@@ -5,6 +5,8 @@ static control_t	controls;
 
 int		Game_Init()
 {
+	Assets_Load(ASSET_WALLS, "./assets/textures/wolftextures.bmp");
+	printf("%p\n", Assets_Get(ASSET_WALLS));
 	Map_Init();
 	ply.pos.x = 8.0f;
 	ply.pos.y = 8.0f;

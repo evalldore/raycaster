@@ -91,7 +91,7 @@ void Map_Draw(float x, float y, float a)
 	fvec_t planeDir = {cos(planeAngle), sin(planeAngle)};
 	fvec_t angleDir = {cos(a), sin(a)};
 	int ray;
-	int rayWidth = 1;
+	int rayWidth = 8;
 	int rayAmount = (WIDTH / rayWidth);
 	u_int32_t rayHit = 0;
 	GLfloat	*lineVertices = malloc((sizeof(GLfloat) * 10) * rayAmount);
@@ -142,9 +142,9 @@ void Map_Draw(float x, float y, float a)
 				mapCheck.y += vStep.y;
 				distance = rayLength.y;
 				rayLength.y += rayStep.y;
-				wallColor[0] = 1.00f;
-				wallColor[1] = 1.0f;
-				wallColor[2] = 1.0f;
+				wallColor[0] = 0.75f;
+				wallColor[1] = 0.0f;
+				wallColor[2] = 0.0f;
 			}
 			tileFound = (Map_GetTile(mapCheck.x, mapCheck.y) == 1);
 			dof++;

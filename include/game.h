@@ -4,6 +4,7 @@
 # include "renderer.h"
 # include "utils.h"
 # include "map.h"
+# include "assets.h"
 # define SPEED 2
 # define TURN_SPEED 5
 
