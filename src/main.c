@@ -54,6 +54,7 @@ static void		Init()
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 	g_window = SDL_CreateWindow("Raycaster", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT, SDL_WINDOW_OPENGL);
+	//SDL_SetWindowFullscreen(g_window, SDL_WINDOW_FULLSCREEN);
 	if (!g_window)
 	{
 		printf("SDL failed to create window!");

@@ -5,5 +5,6 @@
 
 void	Map_Draw(float x, float y, float a);
 int		Map_GetTile(int x, int y);
+void 	Map_Init();
 
 #endif

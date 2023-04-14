@@ -1,6 +1,10 @@
 #include "map.h"
 #include "renderer.h"
 
+static GLuint	g_mapVertexArray = 0;
+static GLuint	g_mapVertexBuffer = 0;
+static GLuint	g_rayShader = 0;
+
 static uint32_t		map_w = 16, map_h = 16;
 static u_int32_t	map[][16] = {
 	{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
@@ -71,6 +75,13 @@ int Map_GetTile(int x, int y)
 	return (0);
 }
 
+void Map_Init()
+{
+	glGenVertexArrays(1, &g_mapVertexArray);
+	glGenBuffers(1, &g_mapVertexBuffer);
+	g_rayShader = Renderer_CreateShader("./shaders/ray_vert.glsl", "./shaders/ray_frag.glsl");
+}
+
 void Map_Draw(float x, float y, float a)
 {
 	Draw_Ceiling();
@@ -85,8 +96,8 @@ void Map_Draw(float x, float y, float a)
 	{
 		float cameraX = 2.0f * ((float)(ray) / (float)rayAmount) - 1.0f;
 		fvec_t rayDir = {
-			angleDir.x + (planeDir.x * 0.66f) * cameraX,
-			angleDir.y + (planeDir.y * 0.66f) * cameraX,
+			angleDir.x + (planeDir.x * 0.50f) * cameraX,
+			angleDir.y + (planeDir.y * 0.50f) * cameraX,
 		};
 		ivec_t mapCheck = {(int)x, (int)y};
 		fvec_t rayStep = {
@@ -135,7 +146,7 @@ void Map_Draw(float x, float y, float a)
 			float lineH = (float)(HEIGHT >> 1) - ((float)(HEIGHT >> 1) / distance);
 			float lineO = HEIGHT - lineH;
 			glLineWidth(rayWidth);
-			Renderer_DrawLine((rayWidth >> 1) + ray * 8, lineO, (rayWidth >> 1) + ray * 8, lineH);
+			Renderer_DrawLine((rayWidth >> 1) + ray * rayWidth, lineO, (rayWidth >> 1) + ray * rayWidth, lineH);
 		}
 	}
 }

@@ -145,6 +145,14 @@ static GLuint	CreateShaderProgram(const char *vertexShaderSource, const char *fr
 	//Valid program
 	glValidateProgram(programObject);
 
+	int success;
+	char infoLog[512];
+	glGetProgramiv(programObject, GL_VALIDATE_STATUS, &success);
+	if (!success) {
+		glGetProgramInfoLog(programObject, 512, NULL, infoLog);
+		printf("Program validation failed:\n%s\n", infoLog);
+	}
+
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
@@ -161,16 +169,21 @@ void Renderer_SetColor(float r, float g, float b)
 	glUniform3fv(colorLocation, 1, g_shaderColor);
 }
 
-static void	CreateGraphicsPipeline()
+GLuint	Renderer_CreateShader(const char *vertPath, const char *fragPath)
 {
 	char	*vertexShaderSrc;
 	char	*fragmentShaderSrc;
+	GLuint	shaderProgram = 0;
 
-	vertexShaderSrc = LoadShader("./shaders/test_vert.glsl");
-	fragmentShaderSrc = LoadShader("./shaders/test_frag.glsl");
-	g_graphicsPipelineShader = CreateShaderProgram(vertexShaderSrc, fragmentShaderSrc);
-	free(vertexShaderSrc);
-	free(fragmentShaderSrc);
+	vertexShaderSrc = LoadShader(vertPath);
+	fragmentShaderSrc = LoadShader(fragPath);
+	if (vertexShaderSrc && fragmentShaderSrc)
+	{
+		shaderProgram = CreateShaderProgram(vertexShaderSrc, fragmentShaderSrc);
+		free(vertexShaderSrc);
+		free(fragmentShaderSrc);
+	}
+	return (shaderProgram);
 }
 
 void Renderer_DrawPoint(float x, float y)
@@ -243,7 +256,7 @@ void	Renderer_Init(SDL_Window *window)
 		printf("GLAD failed to initalize!");
 		exit(EXIT_FAILURE);
 	}
-	CreateGraphicsPipeline();
+	g_graphicsPipelineShader = Renderer_CreateShader("./shaders/test_vert.glsl", "./shaders/test_frag.glsl");
 	//VertexSpecification();
 	
 	glGenVertexArrays(1, &g_lineVertexArray);

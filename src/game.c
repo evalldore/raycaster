@@ -5,6 +5,7 @@ static control_t	controls;
 
 int		Game_Init()
 {
+	Map_Init();
 	ply.pos.x = 8.0f;
 	ply.pos.y = 8.0f;
 	ply.angle = 0.0f;
