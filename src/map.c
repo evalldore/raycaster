@@ -91,18 +91,18 @@ void Map_Draw(float x, float y, float a)
 	float planeAngle = rotate(a, DR * 90);
 	fvec_t planeDir = {cos(planeAngle), sin(planeAngle)};
 	fvec_t angleDir = {cos(a), sin(a)};
-	int ray;
 	int rayWidth = 1;
 	int rayAmount = (WIDTH / rayWidth);
 	u_int32_t rayHit = 0;
 	GLfloat	*lineVertices = malloc((sizeof(GLfloat) * 14) * rayAmount);
 
+	int ray;
 	for(ray = 0; ray < rayAmount; ray++)
 	{
 		float cameraX = 2.0f * ((float)(ray) / (float)rayAmount) - 1.0f;
 		fvec_t rayDir = {
-			angleDir.x + (planeDir.x * 0.50f) * cameraX,
-			angleDir.y + (planeDir.y * 0.50f) * cameraX,
+			angleDir.x + (planeDir.x * 0.80f) * cameraX,
+			angleDir.y + (planeDir.y * 0.80f) * cameraX,
 		};
 		ivec_t mapCheck = {(int)x, (int)y};
 		fvec_t rayStep = {
@@ -133,7 +133,7 @@ void Map_Draw(float x, float y, float a)
 			{
 				mapCheck.x += vStep.x;
 				distance = rayLength.x;
-				txtXCoord = (float)mapCheck.y - (y + rayDir.y * distance);
+				txtXCoord = (y + rayDir.y * distance) - (float)mapCheck.y;
 				rayLength.x += rayStep.x;
 				//printf("tile: %d/%f\n", mapCheck.x, txtXCoord);
 				wallColor[0] = fmax(1.0f - (distance / 11.0f), 0.0f);
@@ -144,7 +144,7 @@ void Map_Draw(float x, float y, float a)
 			{
 				mapCheck.y += vStep.y;
 				distance = rayLength.y;
-				txtXCoord = (float)mapCheck.x - (x + rayDir.x * distance);
+				txtXCoord = (x + rayDir.x * distance) - (float)mapCheck.x;
 				rayLength.y += rayStep.y;
 				wallColor[0] = fmax(1.0f - (distance / 11.0f), 0.0f) * 0.75f;
 				wallColor[1] = fmax(1.0f - (distance / 11.0f), 0.0f) * 0.75f;
@@ -156,28 +156,29 @@ void Map_Draw(float x, float y, float a)
 
 		if (tileFound)
 		{
-			float lineH = (float)(HEIGHT >> 1) - ((float)(HEIGHT >> 1) / distance);
-			float lineO = HEIGHT - lineH;
+			txtXCoord = (GLfloat)(64 + (txtXCoord * 64)) / 512.f;
+			GLfloat lineH = (float)(HEIGHT >> 1) - ((float)(HEIGHT >> 1) / distance);
+			GLfloat lineO = HEIGHT - lineH;
 			uint32_t rayVertIndex = rayHit * 14;
 			//start position
 			lineVertices[rayVertIndex] = (GLfloat)(ray * rayWidth);
-			lineVertices[rayVertIndex + 1] = (GLfloat)lineO;
+			lineVertices[rayVertIndex + 1] = lineO;
 			//color start vertex
 			lineVertices[rayVertIndex + 2] = wallColor[0];
 			lineVertices[rayVertIndex + 3] = wallColor[1];
 			lineVertices[rayVertIndex + 4] = wallColor[2];
 			//start vertex coords;
-			lineVertices[rayVertIndex + 5] = (float)txtXCoord;
+			lineVertices[rayVertIndex + 5] = txtXCoord;
 			lineVertices[rayVertIndex + 6] = 1.0f;
 			//end position
 			lineVertices[rayVertIndex + 7] = (GLfloat)(ray * rayWidth);
-			lineVertices[rayVertIndex + 8] = (GLfloat)lineH;
+			lineVertices[rayVertIndex + 8] = lineH;
 			//color end vertex
 			lineVertices[rayVertIndex + 9] = wallColor[0];
 			lineVertices[rayVertIndex + 10] = wallColor[1];
 			lineVertices[rayVertIndex + 11] = wallColor[2];
 			//vertex end coords
-			lineVertices[rayVertIndex + 12] = (float)txtXCoord;
+			lineVertices[rayVertIndex + 12] = txtXCoord;
 			lineVertices[rayVertIndex + 13] = 0.0f;
 			rayHit++;
 		}
