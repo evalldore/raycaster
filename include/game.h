@@ -5,7 +5,7 @@
 # include "utils.h"
 # include "map.h"
 # include "assets.h"
-# define SPEED 2
+# define SPEED 5
 # define TURN_SPEED 5
 
 typedef struct 
@@ -22,7 +22,7 @@ typedef struct
 	float	angle;
 }	player_t;
 
-int		Game_Init();
+void	Game_Init();
 void	Game_Update(double dt);
 void	Game_KeyPressed(SDL_KeyboardEvent key);
 void	Game_KeyReleased(SDL_KeyboardEvent key);

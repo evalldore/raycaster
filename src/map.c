@@ -8,20 +8,20 @@ static GLuint	g_rayShader = 0;
 static uint32_t		map_w = 16, map_h = 16;
 static u_int32_t	map[][16] = {
 	{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-	{1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1},
-	{1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 6, 6, 6, 0, 0, 0, 0, 1, 0, 0, 0, 1},
+	{1, 0, 0, 0, 6, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
 	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 	{1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1},
 	{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1},
-	{1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-	{1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 6, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 6, 6, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+	{1, 6, 0, 6, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
 	{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
 	
 };
@@ -82,13 +82,82 @@ void Map_Init()
 	g_rayShader = Renderer_CreateShader("./shaders/ray_vert.glsl", "./shaders/ray_frag.glsl");
 }
 
+/*void Map_DrawFloor(float posX, float posY, float a)
+{
+	// Vertical position of the camera.
+	float posZ = 0.5 * HEIGHT;
+	float planeAngle = rotate(a, DR * 90);
+	fvec_t planeDir = {cos(planeAngle), sin(planeAngle)};
+	fvec_t angleDir = {cos(a), sin(a)};
+
+	for(int pixelY = 0; pixelY < HEIGHT; pixelY++)
+	{
+		// rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
+		fvec_t rayLeft = {
+			angleDir.x - planeDir.x,
+			angleDir.y - planeDir.y
+		};
+
+		fvec_t rayRight = {
+			angleDir.x + planeDir.x,
+			angleDir.y + planeDir.y
+		};
+
+		// Horizontal distance from the camera to the floor for the current row.
+		// 0.5 is the z position exactly in the middle between floor and ceiling.
+
+		float rowDistance = posZ / (pixelY - (HEIGHT >> 1));
+
+		// calculate the real world step vector we have to add for each x (parallel to camera plane)
+		// adding step by step avoids multiplications with a weight in the inner loop
+		fvec_t floorStep = {
+			rowDistance * (rayRight.x - rayLeft.x) / WIDTH,
+			rowDistance * (rayRight.y - rayLeft.y) / WIDTH
+		};
+		// real world coordinates of the leftmost column. This will be updated as we step to the right.
+		fvec_t floor = {
+			posX + rowDistance * rayLeft.x,
+			posY + rowDistance * rayLeft.y
+		};
+
+		for(int pixelX = 0; pixelX < WIDTH; ++pixelX)
+		{
+			// the cell coord is simply got from the integer parts of floorX and floorY
+			int cellX = (int)(floor.x);
+			int cellY = (int)(floor.y);
+
+			// get the texture coordinate from the fractional part
+			int tx = (int)(64 * (floor.x - cellX)) & (64 - 1);
+			int ty = (int)(64 * (floor.y - cellY)) & (64 - 1);
+
+			floor.x += floorStep.x;
+			floor.y += floorStep.y;
+
+			// choose texture and draw the pixel
+			int floorTexture = 3;
+			int ceilingTexture = 6;
+			Uint32 color;
+
+			// floor
+			color = texture[floorTexture][texWidth * ty + tx];
+			color = (color >> 1) & 8355711; // make a bit darker
+			buffer[pixelY][pixelX] = color;
+
+			//ceiling (symmetrical, at screenHeight - y - 1 instead of y)
+			color = texture[ceilingTexture][texWidth * ty + tx];
+			color = (color >> 1) & 8355711; // make a bit darker
+		}
+	}
+}*/
+
 void Map_Draw(float x, float y, float a)
 {
+	//Map_DrawFloor(x, y, a);
 	//Draw_Ceiling();
 	//Draw_Floor();
 	GLfloat	wallColor[3] = {1.0f, 0.0f, 0.0f};
 	GLfloat txtXCoord = 0.0f;
-	float planeAngle = rotate(a, DR * 90);
+	float planeAngle = rotate(a, degToRad(90.f));
 	fvec_t planeDir = {cos(planeAngle), sin(planeAngle)};
 	fvec_t angleDir = {cos(a), sin(a)};
 	int rayWidth = 1;
@@ -124,10 +193,10 @@ void Map_Draw(float x, float y, float a)
 			vStep.y = -1;
 			rayLength.y = (y - (float)mapCheck.y) * rayStep.y;
 		}
-		bool tileFound = false;
+		int tileFound = 0;
 		float distance = 0.0f;
 		int	dof = 0;
-		while (!tileFound && dof <= 16)
+		while (tileFound == 0 && dof <= 16)
 		{
 			if (rayLength.x < rayLength.y) 
 			{
@@ -135,7 +204,6 @@ void Map_Draw(float x, float y, float a)
 				distance = rayLength.x;
 				txtXCoord = (y + rayDir.y * distance) - (float)mapCheck.y;
 				rayLength.x += rayStep.x;
-				//printf("tile: %d/%f\n", mapCheck.x, txtXCoord);
 				wallColor[0] = fmax(1.0f - (distance / 11.0f), 0.0f);
 				wallColor[1] = fmax(1.0f - (distance / 11.0f), 0.0f);
 				wallColor[2] = fmax(1.0f - (distance / 11.0f), 0.0f);
@@ -150,16 +218,16 @@ void Map_Draw(float x, float y, float a)
 				wallColor[1] = fmax(1.0f - (distance / 11.0f), 0.0f) * 0.75f;
 				wallColor[2] = fmax(1.0f - (distance / 11.0f), 0.0f) * 0.75f;
 			}
-			tileFound = (Map_GetTile(mapCheck.x, mapCheck.y) == 1);
+			tileFound = Map_GetTile(mapCheck.x, mapCheck.y);
 			dof++;
 		}
 
-		if (tileFound)
+		GLfloat lineH = (float)(HEIGHT >> 1) - ((float)(HEIGHT >> 1) / distance);
+		GLfloat lineO = HEIGHT - lineH;
+		if (tileFound > 0)
 		{
-			txtXCoord = (GLfloat)(64 + (txtXCoord * 64)) / 512.f;
-			GLfloat lineH = (float)(HEIGHT >> 1) - ((float)(HEIGHT >> 1) / distance);
-			GLfloat lineO = HEIGHT - lineH;
 			uint32_t rayVertIndex = rayHit * 14;
+			txtXCoord = (GLfloat)((64 * (tileFound - 1)) + (txtXCoord * 64)) / 512.f;
 			//start position
 			lineVertices[rayVertIndex] = (GLfloat)(ray * rayWidth);
 			lineVertices[rayVertIndex + 1] = lineO;
@@ -182,6 +250,10 @@ void Map_Draw(float x, float y, float a)
 			lineVertices[rayVertIndex + 13] = 0.0f;
 			rayHit++;
 		}
+
+		Renderer_SetColor(1.0f, 0.0f, 0.0f);
+		Renderer_DrawLine(ray, lineO, ray, HEIGHT);
+
 	}
 
 	texture_t *asset = Assets_Get(ASSET_WALLS);

@@ -11,24 +11,37 @@ GLuint			g_rectVertexArray = 0;
 GLuint			g_rectVertexBuffer = 0;
 GLuint			g_rectIndexBuffer = 0;
 
-static void		GLClearAllErrors()
+const char* GLErrorString(GLenum error)
+{
+    switch (error)
+    {
+        case GL_NO_ERROR:          return "No error";
+        case GL_INVALID_ENUM:      return "Invalid enum";
+        case GL_INVALID_VALUE:     return "Invalid value";
+        case GL_INVALID_OPERATION: return "Invalid operation";
+        case GL_STACK_OVERFLOW:    return "Stack overflow";
+        case GL_STACK_UNDERFLOW:   return "Stack underflow";
+        case GL_OUT_OF_MEMORY:     return "Out of memory";
+        default:                   return "Unknown error";
+    }
+}
+
+void		GLClearAllErrors()
 {
 	while(glGetError() != GL_NO_ERROR) {}
 }
 
-static bool		GLCheckErrorStatus(const char *function, int line)
+bool		GLCheckErrorStatus(const char *function, int line)
 {
 	GLenum	error;
 
 	while((error = glGetError()))
 	{
-		printf("OpenGL error: %d\tLine: %d\tFunction: %s\n", error, line, function);
+		fprintf(stderr, "OpenGL error: %s\n\tLine: %d\n\tFunction: %s\n", GLErrorString(error), line, function);
 		return (true);
 	}
 	return (false);
 }
-
-#define GLCheck(x) GLClearAllErrors(); x; GLCheckErrorStatus(#x, __LINE__);
 
 static char	*LoadShader(const char	*filename)
 {
@@ -74,63 +87,15 @@ static GLuint	CompileShader(GLuint type, const char *src)
 		GLchar	errorMessages[len];
 		glGetShaderInfoLog(shaderObject, len, &len, errorMessages);
 		if (type == GL_VERTEX_SHADER)
-			printf("ERROR: GL_VERTEX_SHADER\n");
+			fprintf(stderr, "ERROR: GL_VERTEX_SHADER\n");
 		else if (type == GL_FRAGMENT_SHADER)
-			printf("ERROR: GL_FRAGMENT_SHADER\n");
-		printf("%s\n", errorMessages);
+			fprintf(stderr, "ERROR: GL_FRAGMENT_SHADER\n");
+		fprintf(stderr, "%s\n", errorMessages);
 		glDeleteShader(shaderObject);
 		return (0);
 	}
 	return (shaderObject);
 }
-
-/*static void	VertexSpecification()
-{
-	// cpu vertices
-	const GLfloat vertexArray[8][3] = {
-		//vertex 0
-		{-0.5f, -0.5f, 0.0f},	//position
-		{1.0f, 0.0f, 0.0f},		//color
-		//vertex 1
-		{0.5f, -0.5f, 0.0f},	//position
-		{0.0f, 1.0f, 0.0f},		//color
-		//vertex 2
-		{-0.5f, 0.5f, 0.0f},	//position
-		{0.0f, 0.0f, 1.0f},		//color
-		//vertex 3
-		{0.5f, 0.5f, 0.0f},		//position
-		{1.0f, 1.0f, 0.0f}		//color
-	};
-
-	const GLuint vertexIndexes[2][3] = {
-		{2, 0, 1},
-		{3, 2, 1}
-	};
-
-	//gpu setup
-	glGenVertexArrays(1, &g_vertexArrayObject);
-	glBindVertexArray(g_vertexArrayObject);
-
-	//start generating VBO
-	glGenBuffers(1, &g_vertexBufferObject);
-	glBindBuffer(GL_ARRAY_BUFFER, g_vertexBufferObject);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertexArray), &vertexArray, GL_STATIC_DRAW);
-
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 6, NULL);
-
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 6, (GLvoid*)(sizeof(GL_FLOAT) * 3));
-
-	//Setup index buffer object (IBO)
-	glGenBuffers(1, &g_indexBufferObject);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_indexBufferObject);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertexIndexes), &vertexIndexes, GL_STATIC_DRAW);
-
-	glBindVertexArray(0);
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
-}*/
 
 static GLuint	CreateShaderProgram(const char *vertexShaderSource, const char *fragmentShaderSource)
 {
@@ -150,7 +115,7 @@ static GLuint	CreateShaderProgram(const char *vertexShaderSource, const char *fr
 	glGetProgramiv(programObject, GL_VALIDATE_STATUS, &success);
 	if (!success) {
 		glGetProgramInfoLog(programObject, 512, NULL, infoLog);
-		printf("Program validation failed:\n%s\n", infoLog);
+		fprintf(stderr, "Program validation failed:\n%s\n", infoLog);
 	}
 
 	glDeleteShader(vertexShader);
@@ -164,9 +129,6 @@ void Renderer_SetColor(float r, float g, float b)
 	g_shaderColor[0] = r;
 	g_shaderColor[1] = g;
 	g_shaderColor[2] = b;
-
-	GLint colorLocation = glGetUniformLocation(g_graphicsPipelineShader, "color");
-	glUniform3fv(colorLocation, 1, g_shaderColor);
 }
 
 GLuint	Renderer_CreateShader(const char *vertPath, const char *fragPath)
@@ -190,14 +152,18 @@ void Renderer_DrawPoint(float x, float y)
 {
 	GLfloat point[2] = {x, y};
 
-	glBindVertexArray(g_pointVertexArray);
-		glBindBuffer(GL_ARRAY_BUFFER, g_pointVertexBuffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(point), &point, GL_DYNAMIC_DRAW);
-		glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-			glDrawArrays(GL_POINTS, 0, 1);
-		glDisableVertexAttribArray(0);
-	glBindVertexArray(0);
+	GLint screenSizeLocation = glGetUniformLocation(g_graphicsPipelineShader, "screenSize");
+	glUniform2f(screenSizeLocation, WIDTH, HEIGHT);
+	glUseProgram(g_graphicsPipelineShader);
+		glBindVertexArray(g_pointVertexArray);
+			glBindBuffer(GL_ARRAY_BUFFER, g_pointVertexBuffer);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(point), point, GL_DYNAMIC_DRAW);
+			glEnableVertexAttribArray(0);
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+				glDrawArrays(GL_POINTS, 0, 1);
+			glDisableVertexAttribArray(0);
+		glBindVertexArray(0);
+	glUseProgram(0);
 }
 
 void Renderer_DrawRect(float x, float y, float w, float h)
@@ -214,16 +180,20 @@ void Renderer_DrawRect(float x, float y, float w, float h)
 		{3, 2, 1}
 	};
 
-	glBindVertexArray(g_pointVertexArray);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_rectIndexBuffer);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertexIndexes), &vertexIndexes, GL_DYNAMIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, g_pointVertexBuffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertexArray), &vertexArray, GL_DYNAMIC_DRAW);
-		glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
-		glDisableVertexAttribArray(0);
-	glBindVertexArray(0);
+	GLint screenSizeLocation = glGetUniformLocation(g_graphicsPipelineShader, "screenSize");
+	glUniform2f(screenSizeLocation, WIDTH, HEIGHT);
+	glUseProgram(g_graphicsPipelineShader);
+		glBindVertexArray(g_pointVertexArray);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_rectIndexBuffer);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertexIndexes), vertexIndexes, GL_DYNAMIC_DRAW);
+			glBindBuffer(GL_ARRAY_BUFFER, g_pointVertexBuffer);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vertexArray), vertexArray, GL_DYNAMIC_DRAW);
+			glEnableVertexAttribArray(0);
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+				glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+			glDisableVertexAttribArray(0);
+		glBindVertexArray(0);
+	glUseProgram(0);
 }
 
 void Renderer_DrawLine(float sx, float sy, float ex, float ey)
@@ -233,14 +203,20 @@ void Renderer_DrawLine(float sx, float sy, float ex, float ey)
 		{ex, ey}
 	};
 
-	glBindVertexArray(g_lineVertexArray);
-		glBindBuffer(GL_ARRAY_BUFFER, g_lineVertexBuffer);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(lineVertices), &lineVertices, GL_DYNAMIC_DRAW);
-		glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-			glDrawArrays(GL_LINES, 0, 2);
-		glDisableVertexAttribArray(0);
-	glBindVertexArray(0);
+	glUseProgram(g_graphicsPipelineShader);
+		GLint screenSizeLocation = glGetUniformLocation(g_graphicsPipelineShader, "screenSize");
+		glUniform2f(screenSizeLocation, WIDTH, HEIGHT);
+		GLint colorLocation = glGetUniformLocation(g_graphicsPipelineShader, "color");
+		glUniform3fv(colorLocation, 1, g_shaderColor);
+		glBindVertexArray(g_lineVertexArray);
+			glBindBuffer(GL_ARRAY_BUFFER, g_lineVertexBuffer);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(lineVertices), lineVertices, GL_DYNAMIC_DRAW);
+			glEnableVertexAttribArray(0);
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+				glDrawArrays(GL_LINES, 0, 2);
+			glDisableVertexAttribArray(0);
+		glBindVertexArray(0);
+	glUseProgram(0);
 }
 
 void	Renderer_Init(SDL_Window *window)
@@ -248,17 +224,16 @@ void	Renderer_Init(SDL_Window *window)
 	g_context = SDL_GL_CreateContext(window);
 	if (!g_context)
 	{
-		printf("SDL failed to create OpenGL Context!");
+		fprintf(stderr, "SDL failed to create OpenGL Context!");
 		exit(EXIT_FAILURE);
 	}
 	if (!gladLoadGLLoader(SDL_GL_GetProcAddress))
 	{
-		printf("GLAD failed to initalize!");
+		fprintf(stderr, "GLAD failed to initalize!");
 		exit(EXIT_FAILURE);
 	}
 	g_graphicsPipelineShader = Renderer_CreateShader("./shaders/test_vert.glsl", "./shaders/test_frag.glsl");
-	//VertexSpecification();
-	
+
 	glGenVertexArrays(1, &g_lineVertexArray);
 	glGenBuffers(1, &g_lineVertexBuffer);
 
@@ -282,15 +257,11 @@ void	Renderer_Clear()
 
 void	Renderer_PreDraw()
 {
-
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glViewport(0, 0, WIDTH, HEIGHT);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	//glUseProgram(g_graphicsPipelineShader);
-	//GLint screenSizeLocation = glGetUniformLocation(g_graphicsPipelineShader, "screenSize");
-	//glUniform2f(screenSizeLocation, WIDTH, HEIGHT);
 }
 
 void	Renderer_PostDraw()

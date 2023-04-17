@@ -7,12 +7,17 @@ float dist(float x1, float y1, float x2, float y2)
 	return (sqrt((dist_x * dist_x) + (dist_y * dist_y)));
 }
 
+float degToRad(float a)
+{
+	return (a * M_PI / 180.0f);
+}
+
 float rotate(float rad, float dist)
 {
 	rad = rad + dist;
 	if (rad < 0.0f)
-		rad += 2 * PI;
-	else if (rad > 2 * PI)
-		rad -= 2 * PI;
+		rad += 2 * M_PI;
+	else if (rad > 2 * M_PI)
+		rad -= 2 * M_PI;
 	return (rad);
 }

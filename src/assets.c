@@ -6,7 +6,7 @@ void Assets_Load(int32_t index, const char *path)
 {	
 	uint32_t	glID;
 	SDL_Surface *img;
-	SDL_Surface *converted;
+	SDL_Surface *temp;
 	SDL_PixelFormat desiredFormat;
 
 	img = SDL_LoadBMP(path);
@@ -24,12 +24,13 @@ void Assets_Load(int32_t index, const char *path)
     desiredFormat.Bmask = 0x00ff0000;
     desiredFormat.Amask = 0xff000000;
 
-	converted = SDL_ConvertSurface(img, &desiredFormat, 0);
-	if (!converted) {
+	temp = img;
+	img = SDL_ConvertSurface(img, &desiredFormat, 0);
+	if (!temp) {
 		printf("Failed to convert image at %s: %s\n", path, SDL_GetError());
 		return;
 	}
-	free(img);
+	free(temp);
 
 	glGenTextures(1, &glID);
 	glBindTexture(GL_TEXTURE_2D, glID);
@@ -37,11 +38,11 @@ void Assets_Load(int32_t index, const char *path)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, converted->w, converted->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, converted->pixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img->w, img->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, img->pixels);
 	glGenerateMipmap(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	txt_list[index].surface = converted;
+	txt_list[index].surface = img;
 	txt_list[index].glID = glID;
 }
 

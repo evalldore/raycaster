@@ -47,7 +47,7 @@ static void		Init()
 {
 	if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO) < 0)
 	{
-		printf("SDL Failed to initalize!");
+		fprintf(stderr, "SDL Failed to initalize!");
 		exit(EXIT_FAILURE);
 	}
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
@@ -59,7 +59,7 @@ static void		Init()
 	//SDL_SetWindowFullscreen(g_window, SDL_WINDOW_FULLSCREEN);
 	if (!g_window)
 	{
-		printf("SDL failed to create window!");
+		fprintf(stderr, "SDL failed to create window!");
 		exit(EXIT_FAILURE);
 	}
 	Renderer_Init(g_window);
@@ -75,7 +75,7 @@ static void		Exit()
 	SDL_Quit();
 }
 
-int	main(int argc, char *argv)
+int	main(int argc, char **argv)
 {
 	Init();
 	Loop();

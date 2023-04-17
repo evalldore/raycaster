@@ -5,8 +5,14 @@
 # include <glad/glad.h>
 # include <fcntl.h>
 # include <libft.h>
-# define WIDTH 1920
-# define HEIGHT 1080
+# define WIDTH 800
+# define HEIGHT 600
+
+const char* GLErrorString(GLenum error);
+void		GLClearAllErrors();
+bool		GLCheckErrorStatus(const char *function, int line);
+
+#define GLCheck(x) GLClearAllErrors(); x; GLCheckErrorStatus(#x, __LINE__);
 
 void	Renderer_Init(SDL_Window *window);
 void	Renderer_PreDraw();
