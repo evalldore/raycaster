@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   components.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: niceguy <niceguy@student.42.fr>            +#+  +:+       +#+        */
+/*   By: evallee- <evallee-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/19 00:14:52 by niceguy           #+#    #+#             */
-/*   Updated: 2023/04/02 06:50:08 by niceguy          ###   ########.fr       */
+/*   Updated: 2023/05/24 00:46:37 by evallee-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,22 +24,23 @@ void	*ecs_comp_add(uint32_t ent_id, int comp, int argc, ...)
 	if (!g_components[comp].new)
 		return (NULL);
 	va_start(args, argc);
-	ptr = g_components[comp].new(args);
+	ptr = malloc(g_components[comp].size);
+	g_components[comp].new(ptr, args);
 	va_end(args);
 	g_components[comp].ptrs[ent_id] = ptr;
 	return (ptr);
 }
 
-void	ecs_comp_remove(uint32_t ent_id, int comp)
+void	ecs_comp_remove(uint32_t ent_id, int comp_idx)
 {
-	if (ent_id >= ecs_num() || ent_id >= MAX_ENTS || comp >= MAX_COMP)
+	if (ent_id >= ecs_num() || ent_id >= MAX_ENTS || comp_idx >= MAX_COMP)
 		return ;
-	if (!g_components[comp].ptrs[ent_id])
+	if (!g_components[comp_idx].ptrs[ent_id])
 		return ;
-	if (!g_components[comp].dest)
-		return ;
-	g_components[comp].dest(g_components[comp].ptrs[ent_id]);
-	g_components[comp].ptrs[ent_id] = NULL;
+	if (g_components[comp_idx].dest)
+		g_components[comp_idx].dest(g_components[comp_idx].ptrs[ent_id]);
+	free(g_components[comp_idx].ptrs[ent_id]);
+	g_components[comp_idx].ptrs[ent_id] = NULL;
 }
 
 void	*ecs_comp_get(uint32_t ent_id, int comp)
@@ -49,10 +50,11 @@ void	*ecs_comp_get(uint32_t ent_id, int comp)
 	return (g_components[comp].ptrs[ent_id]);
 }
 
-void	ecs_comp_register(int comp, t_constructor c, t_destructor d)
+void	ecs_comp_register(int comp, size_t s, t_const c, t_dest d)
 {
-	if (comp >= MAX_COMP || !c || ! d)
+	if (comp >= MAX_COMP || !c)
 		return ;
+	g_components[comp].size = s;
 	g_components[comp].new = c;
 	g_components[comp].dest = d;
 }

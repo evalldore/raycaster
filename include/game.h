@@ -5,6 +5,8 @@
 # include "utils.h"
 # include "map.h"
 # include "assets.h"
+# include "entities.h"
+# include "sprites.h"
 # define SPEED 5
 # define TURN_SPEED 5
 

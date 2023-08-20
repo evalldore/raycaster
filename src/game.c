@@ -6,7 +6,11 @@ static control_t	controls;
 void	Game_Init()
 {
 	Assets_Load(ASSET_WALLS, "./assets/textures/wolftextures.bmp");
+	Assets_Load(ASSET_SPRITE, "./assets/textures/sprite.bmp");
+	ents_register();
 	Map_Init();
+	//fvec_t	pos = {2.0f, 2.0f};
+	//ents_sprite(pos);
 	ply.pos.x = 8.0f;
 	ply.pos.y = 8.0f;
 	ply.angle = 0.0f;
@@ -22,6 +26,11 @@ void	Game_KeyPressed(SDL_KeyboardEvent key)
 		controls.left = true;
 	if (key.keysym.sym == SDLK_d)
 		controls.right = true;
+
+	if (key.keysym.sym == SDLK_KP_PLUS)
+		Map_SetQuality(Map_GetQuality() + 1);
+	if (key.keysym.sym == SDLK_KP_MINUS)
+		Map_SetQuality(Map_GetQuality() - 1);
 }
 
 void	Game_KeyReleased(SDL_KeyboardEvent key)
@@ -67,21 +76,10 @@ void	Game_Update(double dt)
 	}
 }
 
-/*static void Draw_Player()
-{	
-	//position
-	Renderer_SetColor(1.0f, 0.0f, 0.0f);
-	glPointSize(10);
-	Renderer_DrawPoint(ply.pos.x, ply.pos.y);
-	//direction
-	Renderer_SetColor(0.0f, 0.0f, 1.0f);
-	glLineWidth(2);
-	Renderer_DrawLine(ply.pos.x, ply.pos.y, ply.pos.x + cos(ply.angle) * 25, ply.pos.y + sin(ply.angle) * 25);
-}*/
-
 void	Game_Draw()
 {
 	Map_Draw(ply.pos.x, ply.pos.y, ply.angle);
+	Sprites_Draw(ply.pos.x, ply.pos.y, ply.angle);
 }
 
 void	Game_Exit()

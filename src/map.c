@@ -4,6 +4,9 @@
 static GLuint	g_mapVertexArray = 0;
 static GLuint	g_mapVertexBuffer = 0;
 static GLuint	g_rayShader = 0;
+static uint32_t	g_rayAmount = 0;
+static uint32_t	g_rayWidth = 0;
+static GLfloat	*g_lineVertices;
 
 static uint32_t		map_w = 16, map_h = 16;
 static u_int32_t	map[][16] = {
@@ -25,6 +28,22 @@ static u_int32_t	map[][16] = {
 	{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
 	
 };
+
+void	Map_SetQuality(uint32_t	width)
+{
+	if (g_rayWidth == width || width < 1)
+		return ;
+	g_rayWidth = width;
+	g_rayAmount = (WIDTH / width);
+	if (g_lineVertices)
+		free(g_lineVertices);
+	g_lineVertices = malloc((sizeof(GLfloat) * LINE_ATTR) * g_rayAmount);
+}
+
+uint32_t	Map_GetQuality()
+{
+	return (g_rayWidth);
+}
 
 static void Draw_Map(float x, float y, float a)
 {
@@ -80,98 +99,25 @@ void Map_Init()
 	glGenVertexArrays(1, &g_mapVertexArray);
 	glGenBuffers(1, &g_mapVertexBuffer);
 	g_rayShader = Renderer_CreateShader("./shaders/ray_vert.glsl", "./shaders/ray_frag.glsl");
+	Map_SetQuality(1);
 }
-
-/*void Map_DrawFloor(float posX, float posY, float a)
-{
-	// Vertical position of the camera.
-	float posZ = 0.5 * HEIGHT;
-	float planeAngle = rotate(a, DR * 90);
-	fvec_t planeDir = {cos(planeAngle), sin(planeAngle)};
-	fvec_t angleDir = {cos(a), sin(a)};
-
-	for(int pixelY = 0; pixelY < HEIGHT; pixelY++)
-	{
-		// rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
-		fvec_t rayLeft = {
-			angleDir.x - planeDir.x,
-			angleDir.y - planeDir.y
-		};
-
-		fvec_t rayRight = {
-			angleDir.x + planeDir.x,
-			angleDir.y + planeDir.y
-		};
-
-		// Horizontal distance from the camera to the floor for the current row.
-		// 0.5 is the z position exactly in the middle between floor and ceiling.
-
-		float rowDistance = posZ / (pixelY - (HEIGHT >> 1));
-
-		// calculate the real world step vector we have to add for each x (parallel to camera plane)
-		// adding step by step avoids multiplications with a weight in the inner loop
-		fvec_t floorStep = {
-			rowDistance * (rayRight.x - rayLeft.x) / WIDTH,
-			rowDistance * (rayRight.y - rayLeft.y) / WIDTH
-		};
-		// real world coordinates of the leftmost column. This will be updated as we step to the right.
-		fvec_t floor = {
-			posX + rowDistance * rayLeft.x,
-			posY + rowDistance * rayLeft.y
-		};
-
-		for(int pixelX = 0; pixelX < WIDTH; ++pixelX)
-		{
-			// the cell coord is simply got from the integer parts of floorX and floorY
-			int cellX = (int)(floor.x);
-			int cellY = (int)(floor.y);
-
-			// get the texture coordinate from the fractional part
-			int tx = (int)(64 * (floor.x - cellX)) & (64 - 1);
-			int ty = (int)(64 * (floor.y - cellY)) & (64 - 1);
-
-			floor.x += floorStep.x;
-			floor.y += floorStep.y;
-
-			// choose texture and draw the pixel
-			int floorTexture = 3;
-			int ceilingTexture = 6;
-			Uint32 color;
-
-			// floor
-			color = texture[floorTexture][texWidth * ty + tx];
-			color = (color >> 1) & 8355711; // make a bit darker
-			buffer[pixelY][pixelX] = color;
-
-			//ceiling (symmetrical, at screenHeight - y - 1 instead of y)
-			color = texture[ceilingTexture][texWidth * ty + tx];
-			color = (color >> 1) & 8355711; // make a bit darker
-		}
-	}
-}*/
 
 void Map_Draw(float x, float y, float a)
 {
-	//Map_DrawFloor(x, y, a);
-	//Draw_Ceiling();
-	//Draw_Floor();
 	GLfloat	wallColor[3] = {1.0f, 0.0f, 0.0f};
 	GLfloat txtXCoord = 0.0f;
 	float planeAngle = rotate(a, degToRad(90.f));
 	fvec_t planeDir = {cos(planeAngle), sin(planeAngle)};
 	fvec_t angleDir = {cos(a), sin(a)};
-	int rayWidth = 1;
-	int rayAmount = (WIDTH / rayWidth);
 	u_int32_t rayHit = 0;
-	GLfloat	*lineVertices = malloc((sizeof(GLfloat) * 14) * rayAmount);
 
-	int ray;
-	for(ray = 0; ray < rayAmount; ray++)
+	uint32_t ray;
+	for(ray = 0; ray < g_rayAmount; ray++)
 	{
-		float cameraX = 2.0f * ((float)(ray) / (float)rayAmount) - 1.0f;
+		float cameraX = 2.0f * ((float)(ray) / (float)g_rayAmount) - 1.0f;
 		fvec_t rayDir = {
-			angleDir.x + (planeDir.x * 0.80f) * cameraX,
-			angleDir.y + (planeDir.y * 0.80f) * cameraX,
+			angleDir.x + planeDir.x * cameraX,
+			angleDir.y + planeDir.y * cameraX,
 		};
 		ivec_t mapCheck = {(int)x, (int)y};
 		fvec_t rayStep = {
@@ -226,34 +172,33 @@ void Map_Draw(float x, float y, float a)
 		GLfloat lineO = HEIGHT - lineH;
 		if (tileFound > 0)
 		{
-			uint32_t rayVertIndex = rayHit * 14;
+			GLfloat depth = ((1.0f / distance) - (1.0f / 0.1f)) / ((1.0f / 16.0f) - (1.0f / 0.1f));
+			uint32_t rayVertIndex = rayHit * LINE_ATTR;
 			txtXCoord = (GLfloat)((64 * (tileFound - 1)) + (txtXCoord * 64)) / 512.f;
 			//start position
-			lineVertices[rayVertIndex] = (GLfloat)(ray * rayWidth);
-			lineVertices[rayVertIndex + 1] = lineO;
+			g_lineVertices[rayVertIndex] = (GLfloat)(ray * g_rayWidth);
+			g_lineVertices[rayVertIndex + 1] = lineO;
+			g_lineVertices[rayVertIndex + 2] = depth;
 			//color start vertex
-			lineVertices[rayVertIndex + 2] = wallColor[0];
-			lineVertices[rayVertIndex + 3] = wallColor[1];
-			lineVertices[rayVertIndex + 4] = wallColor[2];
+			g_lineVertices[rayVertIndex + 3] = wallColor[0];
+			g_lineVertices[rayVertIndex + 4] = wallColor[1];
+			g_lineVertices[rayVertIndex + 5] = wallColor[2];
 			//start vertex coords;
-			lineVertices[rayVertIndex + 5] = txtXCoord;
-			lineVertices[rayVertIndex + 6] = 1.0f;
+			g_lineVertices[rayVertIndex + 6] = txtXCoord;
+			g_lineVertices[rayVertIndex + 7] = 1.0f;
 			//end position
-			lineVertices[rayVertIndex + 7] = (GLfloat)(ray * rayWidth);
-			lineVertices[rayVertIndex + 8] = lineH;
+			g_lineVertices[rayVertIndex + 8] = (GLfloat)(ray * g_rayWidth);
+			g_lineVertices[rayVertIndex + 9] = lineH;
+			g_lineVertices[rayVertIndex + 10] = depth;
 			//color end vertex
-			lineVertices[rayVertIndex + 9] = wallColor[0];
-			lineVertices[rayVertIndex + 10] = wallColor[1];
-			lineVertices[rayVertIndex + 11] = wallColor[2];
+			g_lineVertices[rayVertIndex + 11] = wallColor[0];
+			g_lineVertices[rayVertIndex + 12] = wallColor[1];
+			g_lineVertices[rayVertIndex + 13] = wallColor[2];
 			//vertex end coords
-			lineVertices[rayVertIndex + 12] = txtXCoord;
-			lineVertices[rayVertIndex + 13] = 0.0f;
+			g_lineVertices[rayVertIndex + 14] = txtXCoord;
+			g_lineVertices[rayVertIndex + 15] = 0.0f;
 			rayHit++;
 		}
-
-		Renderer_SetColor(1.0f, 0.0f, 0.0f);
-		Renderer_DrawLine(ray, lineO, ray, HEIGHT);
-
 	}
 
 	texture_t *asset = Assets_Get(ASSET_WALLS);
@@ -266,14 +211,14 @@ void Map_Draw(float x, float y, float a)
 		glUniform2f(glGetUniformLocation(g_rayShader, "screenSize"), (GLfloat)WIDTH, (GLfloat)HEIGHT);
 		glBindVertexArray(g_mapVertexArray);
 		glBindBuffer(GL_ARRAY_BUFFER, g_mapVertexBuffer);
-		glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * 14) * rayHit, lineVertices, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, (sizeof(GLfloat) * LINE_ATTR) * rayHit, g_lineVertices, GL_DYNAMIC_DRAW);
 		glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 7, NULL);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, NULL);
 		glEnableVertexAttribArray(1);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 7, (GLvoid*)(sizeof(GL_FLOAT) * 2));
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, (GLvoid*)(sizeof(GL_FLOAT) * 3));
 		glEnableVertexAttribArray(2);
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 7, (GLvoid*)(sizeof(GL_FLOAT) * 5));
-		glLineWidth(rayWidth);
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, (GLvoid*)(sizeof(GL_FLOAT) * 6));
+		glLineWidth(g_rayWidth);
 		glDrawArrays(GL_LINES, 0, rayHit * 2);
 		glBindVertexArray(0);
 		glBindTexture(GL_TEXTURE_2D, 0);
@@ -281,5 +226,4 @@ void Map_Draw(float x, float y, float a)
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
 	glUseProgram(0);
-	free(lineVertices);
 }

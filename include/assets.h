@@ -7,6 +7,7 @@
 enum e_assets {
 	ASSET_NONE,
 	ASSET_WALLS,
+	ASSET_SPRITE,
 	MAX_ASSETS
 };
 
