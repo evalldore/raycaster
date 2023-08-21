@@ -7,6 +7,7 @@
 # include "assets.h"
 # include "entities.h"
 # include "sprites.h"
+# include "camera.h"
 # define SPEED 5
 # define TURN_SPEED 5
 

@@ -9,10 +9,10 @@ typedef struct
 	float	angle;
 }	camera_t;
 
-void camera_init(float x, float y, float a, float fov);
-void camera_setPos(float x, float y);
-void camera_setFOV(float fov);
-void camera_setAngle(float a);
-camera_t camera_get();
+void		camera_init(fvec_t pos, float a, float fov);
+void		camera_setPos(fvec_t pos);
+void		camera_setFOV(float fov);
+void		camera_setAngle(float a);
+camera_t	camera_get();
 
 #endif

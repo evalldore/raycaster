@@ -14,6 +14,7 @@ void	Game_Init()
 	ply.pos.x = 8.0f;
 	ply.pos.y = 8.0f;
 	ply.angle = 0.0f;
+	camera_init(ply.pos, ply.angle, 90.0f);
 }
 
 void	Game_KeyPressed(SDL_KeyboardEvent key)
@@ -72,14 +73,15 @@ void	Game_Update(double dt)
 			ply.pos.x -= cos(ply.angle) * SPEED * dt;
 		if (Map_GetTile((int)ply.pos.x, forwardCoords.y) == 0)
 			ply.pos.y -= sin(ply.angle) * SPEED * dt;
-
 	}
+	camera_setPos(ply.pos);
+	camera_setAngle(ply.angle);
 }
 
 void	Game_Draw()
 {
-	Map_Draw(ply.pos.x, ply.pos.y, ply.angle);
-	Sprites_Draw(ply.pos.x, ply.pos.y, ply.angle);
+	Map_Draw(camera_get());
+	Sprites_Draw(camera_get());
 }
 
 void	Game_Exit()

@@ -23,5 +23,6 @@ void	Renderer_DrawRect(float x, float y, float w, float h);
 void	Renderer_SetColor(float r, float g, float b);
 void	Renderer_Clear();
 GLuint	Renderer_CreateShader(const char *vertPath, const char *fragPath);
+void	Renderer_DrawImage(uint32_t glID, float x, float y, float z, float w, float h);
 
 #endif

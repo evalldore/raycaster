@@ -102,13 +102,13 @@ void Map_Init()
 	Map_SetQuality(1);
 }
 
-void Map_Draw(float x, float y, float a)
+void Map_Draw(camera_t cam)
 {
 	GLfloat	wallColor[3] = {1.0f, 0.0f, 0.0f};
 	GLfloat txtXCoord = 0.0f;
-	float planeAngle = rotate(a, degToRad(90.f));
+	float planeAngle = rotate(cam.angle, degToRad(90.f));
 	fvec_t planeDir = {cos(planeAngle), sin(planeAngle)};
-	fvec_t angleDir = {cos(a), sin(a)};
+	fvec_t angleDir = {cos(cam.angle), sin(cam.angle)};
 	u_int32_t rayHit = 0;
 
 	uint32_t ray;
@@ -116,28 +116,28 @@ void Map_Draw(float x, float y, float a)
 	{
 		float cameraX = 2.0f * ((float)(ray) / (float)g_rayAmount) - 1.0f;
 		fvec_t rayDir = {
-			angleDir.x + planeDir.x * cameraX,
-			angleDir.y + planeDir.y * cameraX,
+			angleDir.x + (planeDir.x * 0.80f) * cameraX,
+			angleDir.y + (planeDir.y * 0.80f) * cameraX,
 		};
-		ivec_t mapCheck = {(int)x, (int)y};
+		ivec_t mapCheck = {(int)cam.pos.x, (int)cam.pos.y};
 		fvec_t rayStep = {
 			(rayDir.x == 0) ? INFINITY : fabs(1.0f / rayDir.x),
 			(rayDir.y == 0) ? INFINITY : fabs(1.0f / rayDir.y),
 		};
 		fvec_t rayLength = {
-			(((float)mapCheck.x + 1) - x) * rayStep.x,
-			(((float)mapCheck.y + 1) - y) * rayStep.y
+			(((float)mapCheck.x + 1) - cam.pos.x) * rayStep.x,
+			(((float)mapCheck.y + 1) - cam.pos.y) * rayStep.y
 		};
 		ivec_t vStep = {1, 1};
 		if (rayDir.x < 0) 
 		{
 			vStep.x = -1;
-			rayLength.x = (x - (float)mapCheck.x) * rayStep.x;
+			rayLength.x = (cam.pos.x - (float)mapCheck.x) * rayStep.x;
 		}
 		if (rayDir.y < 0) 
 		{
 			vStep.y = -1;
-			rayLength.y = (y - (float)mapCheck.y) * rayStep.y;
+			rayLength.y = (cam.pos.y - (float)mapCheck.y) * rayStep.y;
 		}
 		int tileFound = 0;
 		float distance = 0.0f;
@@ -148,7 +148,7 @@ void Map_Draw(float x, float y, float a)
 			{
 				mapCheck.x += vStep.x;
 				distance = rayLength.x;
-				txtXCoord = (y + rayDir.y * distance) - (float)mapCheck.y;
+				txtXCoord = (cam.pos.y + rayDir.y * distance) - (float)mapCheck.y;
 				rayLength.x += rayStep.x;
 				wallColor[0] = fmax(1.0f - (distance / 11.0f), 0.0f);
 				wallColor[1] = fmax(1.0f - (distance / 11.0f), 0.0f);
@@ -158,7 +158,7 @@ void Map_Draw(float x, float y, float a)
 			{
 				mapCheck.y += vStep.y;
 				distance = rayLength.y;
-				txtXCoord = (x + rayDir.x * distance) - (float)mapCheck.x;
+				txtXCoord = (cam.pos.x + rayDir.x * distance) - (float)mapCheck.x;
 				rayLength.y += rayStep.y;
 				wallColor[0] = fmax(1.0f - (distance / 11.0f), 0.0f) * 0.75f;
 				wallColor[1] = fmax(1.0f - (distance / 11.0f), 0.0f) * 0.75f;

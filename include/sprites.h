@@ -1,6 +1,9 @@
 #ifndef SPRITES_H
 #define SPRITES_H
 
-void	Sprites_Draw(float x, float y, float a);
+#include "camera.h"
+#include "assets.h"
+
+void	Sprites_Draw(camera_t cam);
 
 #endif

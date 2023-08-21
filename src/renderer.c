@@ -2,7 +2,11 @@
 
 SDL_GLContext	g_context;
 GLuint			g_graphicsPipelineShader = 0;
+GLuint			g_imageShader = 0;
 GLfloat			g_shaderColor[3] = {1.0f, 1.0f, 1.0f};
+GLuint			g_imageVertexArray = 0;
+GLuint			g_imageVertexBuffer = 0;
+GLuint			g_imageIndexBuffer = 0;
 GLuint			g_lineVertexArray = 0;
 GLuint			g_lineVertexBuffer = 0;
 GLuint			g_pointVertexArray = 0;
@@ -168,38 +172,6 @@ void Renderer_DrawPoint(float x, float y)
 	glUseProgram(0);
 }
 
-void Renderer_DrawRect(float x, float y, float w, float h)
-{
-	GLfloat vertexArray[4][2] = {
-		{x, y + h},
-		{x + w, y + h},
-		{x, y},
-		{x + w, y}
-	};
-
-	GLuint vertexIndexes[2][3] = {
-		{2, 0, 1},
-		{3, 2, 1}
-	};
-
-	GLint screenSizeLocation = glGetUniformLocation(g_graphicsPipelineShader, "screenSize");
-	GLint colorLocation = glGetUniformLocation(g_graphicsPipelineShader, "color");
-	glUniform2f(screenSizeLocation, WIDTH, HEIGHT);
-	glUniform3fv(colorLocation, 1, g_shaderColor);
-	glUseProgram(g_graphicsPipelineShader);
-		glBindVertexArray(g_pointVertexArray);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_rectIndexBuffer);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertexIndexes), vertexIndexes, GL_DYNAMIC_DRAW);
-			glBindBuffer(GL_ARRAY_BUFFER, g_rectVertexBuffer);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(vertexArray), vertexArray, GL_DYNAMIC_DRAW);
-			glEnableVertexAttribArray(0);
-				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-				glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
-			glDisableVertexAttribArray(0);
-		glBindVertexArray(0);
-	glUseProgram(0);
-}
-
 void Renderer_DrawLine(float sx, float sy, float ex, float ey)
 {	
 	GLfloat lineVertices[2][2] = {
@@ -237,12 +209,17 @@ void	Renderer_Init(SDL_Window *window)
 		exit(EXIT_FAILURE);
 	}
 	g_graphicsPipelineShader = Renderer_CreateShader("./shaders/test_vert.glsl", "./shaders/test_frag.glsl");
+	g_imageShader = Renderer_CreateShader("./shaders/image_vert.glsl", "./shaders/image_frag.glsl");
 
 	glGenVertexArrays(1, &g_lineVertexArray);
 	glGenBuffers(1, &g_lineVertexBuffer);
 
 	glGenVertexArrays(1, &g_pointVertexArray);
 	glGenBuffers(1, &g_pointVertexBuffer);
+
+	glGenVertexArrays(1, &g_imageVertexArray);
+	glGenBuffers(1, &g_imageVertexBuffer);
+	glGenBuffers(1, &g_imageIndexBuffer);
 
 	glGenVertexArrays(1, &g_rectVertexArray);
 	glGenBuffers(1, &g_rectVertexBuffer);
@@ -254,6 +231,87 @@ void	Renderer_Init(SDL_Window *window)
 	printf("Shading language version: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 }
 
+void Renderer_DrawRect(float x, float y, float w, float h)
+{
+	GLfloat vertexArray[4][2] = {
+		{x, y + h},
+		{x + w, y + h},
+		{x, y},
+		{x + w, y}
+	};
+
+	GLuint vertexIndexes[2][3] = {
+		{2, 0, 1},
+		{3, 2, 1}
+	};
+
+	GLint screenSizeLocation = glGetUniformLocation(g_graphicsPipelineShader, "screenSize");
+	GLint colorLocation = glGetUniformLocation(g_graphicsPipelineShader, "color");
+	glUniform2f(screenSizeLocation, WIDTH, HEIGHT);
+	glUniform3fv(colorLocation, 1, g_shaderColor);
+	glUseProgram(g_graphicsPipelineShader);
+		glBindVertexArray(g_pointVertexArray);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_rectIndexBuffer);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertexIndexes), vertexIndexes, GL_DYNAMIC_DRAW);
+			glBindBuffer(GL_ARRAY_BUFFER, g_rectVertexBuffer);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vertexArray), vertexArray, GL_DYNAMIC_DRAW);
+			glEnableVertexAttribArray(0);
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+				glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+			glDisableVertexAttribArray(0);
+		glBindVertexArray(0);
+	glUseProgram(0);
+}
+
+void Renderer_DrawImage(uint32_t glID, float x, float y, float z, float w, float h)
+{
+	GLfloat depth = ((1.0f / z) - (1.0f / 0.1f)) / ((1.0f / 16.0f) - (1.0f / 0.1f));
+	GLfloat vertexArray[32] = {
+		x, y + h, depth,
+		1.0f, 1.0f, 1.0f,
+		0.0f, 1.0f,
+		x + w, y + h, depth,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f,
+		x, y, depth,
+		1.0f, 1.0f, 1.0f,
+		0.0f, 0.0f,
+		x + w, y, depth,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 0.0f
+	};
+
+	GLuint vertexIndexes[2][3] = {
+		{2, 0, 1},
+		{3, 2, 1}
+	};
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, glID);
+	glUseProgram(g_imageShader);
+		glUniform1i(glGetUniformLocation(g_imageShader, "tex"), 0);
+		glUniform2f(glGetUniformLocation(g_imageShader, "screenSize"), (GLfloat)WIDTH, (GLfloat)HEIGHT);
+		glUniform3fv(glGetUniformLocation(g_imageShader, "color"), 1, g_shaderColor);
+		glBindVertexArray(g_imageVertexArray);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_imageIndexBuffer);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertexIndexes), vertexIndexes, GL_DYNAMIC_DRAW);
+			glBindBuffer(GL_ARRAY_BUFFER, g_imageVertexBuffer);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(vertexArray), vertexArray, GL_DYNAMIC_DRAW);
+			glEnableVertexAttribArray(0);
+				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, NULL);
+			glEnableVertexAttribArray(1);
+				glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, (GLvoid*)(sizeof(GL_FLOAT) * 3));
+			glEnableVertexAttribArray(2);
+				glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, (GLvoid*)(sizeof(GL_FLOAT) * 6));
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+		glBindVertexArray(0);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(2);
+	glUseProgram(0);	
+}
+
 void	Renderer_Clear()
 {
 	SDL_GL_DeleteContext(g_context);
@@ -261,8 +319,8 @@ void	Renderer_Clear()
 
 void	Renderer_PreDraw()
 {
-	glDisable(GL_DEPTH_TEST);
-	//glDepthFunc(GL_LESS); 
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS); 
 	glDisable(GL_CULL_FACE);
 	glViewport(0, 0, WIDTH, HEIGHT);
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);

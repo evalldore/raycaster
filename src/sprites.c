@@ -5,12 +5,12 @@
 
 static fvec_t test = {2.0f, 2.0f};
 
-void	Sprites_Draw(float x, float y, float a)
+void	Sprites_Draw(camera_t cam)
 {
-	fvec_t angleDir = {cos(a), sin(a)};
-	float planeAngle = rotate(a, degToRad(90.f));
-	fvec_t planeDir = {cos(planeAngle), sin(planeAngle)};
-	fvec_t dist = {test.x - x, test.y - y};
+	fvec_t angleDir = {cos(cam.angle), sin(cam.angle)};
+	float planeAngle = rotate(cam.angle, degToRad(90.f));
+	fvec_t planeDir = {cos(planeAngle) * 0.8f, sin(planeAngle) * 0.8f};
+	fvec_t dist = {test.x - cam.pos.x, test.y - cam.pos.y};
 
 	float invDet = 1.0f / (planeDir.x * angleDir.y - angleDir.x * planeDir.y);
 	float transformX = invDet * (angleDir.y * dist.x - angleDir.x * dist.y);
@@ -18,10 +18,11 @@ void	Sprites_Draw(float x, float y, float a)
 	if (transformY < 0.0f) return;
 	float spriteScreenX = (float)(WIDTH >> 1) * (1.0f + transformX / transformY);
 	float spriteHeight = abs((float)HEIGHT / transformY); 
-    float drawStartY = spriteHeight / 2.0f + (float)HEIGHT / 2.0f;
+    float drawStartY = spriteHeight / 2.0f + (float)(HEIGHT >> 1);
+	float drawEndY = -spriteHeight / 2.0f + (float)(HEIGHT >> 1);
+	float size = abs(drawEndY - drawStartY);
 
-	Renderer_SetColor(1.0f, 0.0f, 0.0f);
-	glPointSize(8.0f);
-	Renderer_DrawPoint(spriteScreenX, drawStartY);
-	glPointSize(1.0f);
+	texture_t *asset = Assets_Get(ASSET_SPRITE);
+
+	Renderer_DrawImage(asset->glID, spriteScreenX - (size / 2.0f), drawStartY - size, transformY, size, size);
 }

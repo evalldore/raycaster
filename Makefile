@@ -1,5 +1,5 @@
 NAME		= raycaster
-SRCS		= main.c assets.c game.c map.c renderer.c utils.c entities.c sprites.c \
+SRCS		= main.c assets.c game.c map.c renderer.c utils.c entities.c sprites.c camera.c \
 				components/position.c components/sprite.c
 BINDIR		= bin/
 SRCDIR		= src/
