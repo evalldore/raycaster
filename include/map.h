@@ -7,7 +7,7 @@
 # define LINE_ATTR 16
 
 void		Map_Draw(camera_t cam);
-int			Map_GetTile(int x, int y);
+uint32_t	Map_GetTile(uint32_t x, uint32_t y);
 uint32_t	Map_GetQuality();
 void		Map_SetQuality(uint32_t width);
 void 		Map_Init();

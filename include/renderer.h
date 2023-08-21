@@ -5,8 +5,8 @@
 # include <glad/glad.h>
 # include <fcntl.h>
 # include <libft.h>
-# define WIDTH 800
-# define HEIGHT 600
+# define WIDTH 1920
+# define HEIGHT 1080
 
 const char* GLErrorString(GLenum error);
 void		GLClearAllErrors();

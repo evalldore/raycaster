@@ -1,6 +1,7 @@
 #ifndef CAMERA_H
 # define CAMERA_H
 # include "vector.h"
+# include "renderer.h"
 
 typedef struct 
 {

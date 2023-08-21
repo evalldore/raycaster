@@ -9,7 +9,6 @@ void	Game_Init()
 	Assets_Load(ASSET_SPRITE, "./assets/textures/sprite.bmp");
 	ents_register();
 	Map_Init();
-	//fvec_t	pos = {2.0f, 2.0f};
 	//ents_sprite(pos);
 	ply.pos.x = 8.0f;
 	ply.pos.y = 8.0f;

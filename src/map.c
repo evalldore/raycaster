@@ -45,7 +45,7 @@ uint32_t	Map_GetQuality()
 	return (g_rayWidth);
 }
 
-static void Draw_Map(float x, float y, float a)
+/*static void Draw_Map(float x, float y, float a)
 {
 	uint32_t	coordX, coordY;
 
@@ -73,7 +73,7 @@ static void Draw_Map(float x, float y, float a)
 	Renderer_SetColor(0.0f, 0.0f, 1.0f);
 	glLineWidth(2);
 	Renderer_DrawLine(x * TILE_SIZE, y * TILE_SIZE, (x * TILE_SIZE) + cos(a) * 25, (y * TILE_SIZE) + sin(a) * 25);
-}
+}*/
 
 static void	Draw_Ceiling()
 {
@@ -87,9 +87,9 @@ static void	Draw_Floor()
 	Renderer_DrawRect(0.f, HEIGHT >> 1, WIDTH, HEIGHT);
 }
 
-int Map_GetTile(int x, int y)
+uint32_t Map_GetTile(uint32_t x, uint32_t y)
 {
-	if (x >= 0 && x < map_w && y >= 0 && y < map_h)
+	if (x < map_w && y < map_h)
 		return (map[y][x]);
 	return (0);
 }
@@ -104,6 +104,8 @@ void Map_Init()
 
 void Map_Draw(camera_t cam)
 {
+	Draw_Floor();
+	Draw_Ceiling();
 	GLfloat	wallColor[3] = {1.0f, 0.0f, 0.0f};
 	GLfloat txtXCoord = 0.0f;
 	float planeAngle = rotate(cam.angle, degToRad(90.f));
@@ -116,8 +118,8 @@ void Map_Draw(camera_t cam)
 	{
 		float cameraX = 2.0f * ((float)(ray) / (float)g_rayAmount) - 1.0f;
 		fvec_t rayDir = {
-			angleDir.x + (planeDir.x * 0.80f) * cameraX,
-			angleDir.y + (planeDir.y * 0.80f) * cameraX,
+			angleDir.x + planeDir.x * cameraX,
+			angleDir.y + planeDir.y * cameraX,
 		};
 		ivec_t mapCheck = {(int)cam.pos.x, (int)cam.pos.y};
 		fvec_t rayStep = {

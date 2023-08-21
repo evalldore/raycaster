@@ -63,6 +63,7 @@ static void		Init()
 		exit(EXIT_FAILURE);
 	}
 	Renderer_Init(g_window);
+	float piss[2];
 	Game_Init();
 }
 
@@ -75,7 +76,7 @@ static void		Exit()
 	SDL_Quit();
 }
 
-int	main(int argc, char **argv)
+int	main(void)
 {
 	Init();
 	Loop();
