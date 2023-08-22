@@ -47,29 +47,45 @@ bool		GLCheckErrorStatus(const char *function, int line)
 	return (false);
 }
 
+static char* readFileToBuffer(const char* filename) {
+	FILE *file = fopen(filename, "rb");
+	if (!file) {
+		perror("Failed to open file");
+		return NULL;
+	}
+
+	// Seek to the end of the file to determine its size
+	fseek(file, 0, SEEK_END);
+	long filesize = ftell(file);
+	fseek(file, 0, SEEK_SET); // Reset to the beginning of the file
+
+	// Allocate buffer to hold the file content + 1 byte for the null terminator
+	char *buffer = malloc(filesize + 1);
+	if (!buffer) {
+		perror("Failed to allocate memory");
+		fclose(file);
+		return NULL;
+	}
+
+	// Read the entire file into the buffer
+	size_t bytesRead = fread(buffer, 1, filesize, file);
+	if (bytesRead != filesize) {
+		perror("Failed to read the entire file");
+		free(buffer);
+		fclose(file);
+		return NULL;
+	}
+
+	// Set the last byte of the buffer to 0
+	buffer[filesize] = 0;
+
+	fclose(file);
+	return buffer;
+}
+
 static char	*LoadShader(const char	*filename)
 {
-	char	*results;
-	char	*line;
-	char	*temp;
-	int		fd;
-
-	if (!filename)
-		return (NULL);
-	fd = open(filename, O_RDONLY);
-	if (fd < 0)
-		return (NULL);
-	results = malloc(sizeof(char));
-	results[0] = '\0';
-	while((line = ft_get_next_line(fd)))
-	{
-		temp = results;
-		results = ft_strjoin(results, line);
-		free(temp);
-		free(line);
-	}
-	close(fd);
-	return (results);
+	return (readFileToBuffer(filename));
 }
 
 static GLuint	CompileShader(GLuint type, const char *src)

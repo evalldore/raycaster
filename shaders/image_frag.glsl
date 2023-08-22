@@ -19,7 +19,7 @@ void main()
 	vec4 pixel = texture(tex, vert_texCoord);
 	if (pixel.r == 1.0 && pixel.b == 1.0)
 		discard;
-	frag_color = pixel * vec4(vert_color, 1.0f);
+	frag_color = vec4(pixel.rgb * color, 1.0) * vec4(vert_color, 1.0);
 	//float depth = LinearizeDepth(gl_FragCoord.z) / far; // divide by far for demonstration
 	//frag_color = vec4(vec3(depth), 1.0);
 }

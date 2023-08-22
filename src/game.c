@@ -9,11 +9,13 @@ void	Game_Init()
 	Assets_Load(ASSET_SPRITE, "./assets/textures/sprite.bmp");
 	ents_register();
 	Map_Init();
-	//ents_sprite(pos);
+	fvec_t pos = {2.0f, 2.0f};
+	ents_sprite(pos);
 	ply.pos.x = 8.0f;
 	ply.pos.y = 8.0f;
 	ply.angle = 0.0f;
 	camera_init(ply.pos, ply.angle, 90.0f);
+	printf("ass\n");
 }
 
 void	Game_KeyPressed(SDL_KeyboardEvent key)
@@ -75,6 +77,11 @@ void	Game_Update(double dt)
 	}
 	camera_setPos(ply.pos);
 	camera_setAngle(ply.angle);
+	for (uint32_t i = 0; i < 10; i++)
+	{
+		fvec_t pos = {(float)i, (float)i};
+		Sprites_Add(pos, 0.8f, ASSET_SPRITE);
+	}
 }
 
 void	Game_Draw()

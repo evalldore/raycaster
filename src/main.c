@@ -2,7 +2,7 @@
 
 SDL_Window		*g_window = NULL;
 
-static void	Loop()
+static void	rc_loop()
 {
 	SDL_Event	event;
 	bool		running;
@@ -32,8 +32,9 @@ static void	Loop()
 		}
 		current_ticks = SDL_GetTicks();
 		delta_time = (double)(current_ticks - last_ticks) / 1000.0;
-		//char *fpsText = ft_itoa((int)(1000.f / delta_time));
-		//SDL_SetWindowTitle(g_window, fpsText);
+		/*char *fpsText = ft_itoa((int)(delta_time));
+		SDL_SetWindowTitle(g_window, fpsText);
+		free(fpsText);*/
 		Game_Update(delta_time);
 		Renderer_PreDraw();
 		Game_Draw();
@@ -43,7 +44,7 @@ static void	Loop()
 	}
 }
 
-static void		Init()
+static void		rc_init()
 {
 	if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO) < 0)
 	{
@@ -63,11 +64,10 @@ static void		Init()
 		exit(EXIT_FAILURE);
 	}
 	Renderer_Init(g_window);
-	float piss[2];
 	Game_Init();
 }
 
-static void		Exit()
+static void		rc_exit()
 {
 	printf("exiting\n");
 	Game_Exit();
@@ -78,8 +78,8 @@ static void		Exit()
 
 int	main(void)
 {
-	Init();
-	Loop();
-	Exit();
+	rc_init();
+	rc_loop();
+	rc_exit();
 	return (EXIT_SUCCESS);
 }

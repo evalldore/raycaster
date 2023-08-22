@@ -7,7 +7,7 @@ INCLUDE		= -I include/ -I glad/include -I $(LIBFT)/include -I $(ECS)/include
 OBJS		= $(addprefix $(BINDIR), $(SRCS:.c=.o))
 RM			= rm -r
 SDL2		= `sdl2-config --cflags --libs`
-CFLAGS		= -ldl
+CFLAGS		= -ldl -O3
 LIBFT		= ./lib/libft
 ECS			= ./lib/ecs
 CC			= gcc
